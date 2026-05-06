@@ -85,6 +85,9 @@ gh api -X PATCH "/repos/$REPO" \
 gh api -X PATCH "/repos/$REPO/code-scanning/default-setup" \
   -f state=configured \
   -f query_suite=default
+
+# Private Vulnerability Reporting (powers the SECURITY.md link)
+gh api -X PUT "/repos/$REPO/private-vulnerability-reporting"
 ```
 
 ### 5. Add reviewer protection to the `pypi` deployment environment
