@@ -151,7 +151,7 @@ PEP 621 metadata. The fields PyPI consumes:
 ### `[project.urls]`
 
 Sidebar links rendered on the PyPI page. Pre-populated to point at the
-final `peterschwps/TGTG-CLI` repository.
+final `peterschwps/TooGoodToGo-CLI` repository.
 
 ### `[project.scripts]`
 
@@ -532,9 +532,9 @@ uv build
 uv run python -m twine check dist/*
 
 # Confirm CI status of latest commit
-gh run list --repo peterschwps/TGTG-CLI --limit 5
+gh run list --repo peterschwps/TooGoodToGo-CLI --limit 5
 
 # Confirm branch protection contexts
-gh api /repos/peterschwps/TGTG-CLI/branches/main/protection \
+gh api /repos/peterschwps/TooGoodToGo-CLI/branches/main/protection \
   --jq '.required_status_checks.contexts'
 ```

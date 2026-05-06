@@ -1,4 +1,4 @@
-# Contributing to TGTG-CLI
+# Contributing to TooGoodToGo-CLI
 
 Thanks for your interest in contributing!
 
@@ -7,8 +7,8 @@ Thanks for your interest in contributing!
 Requires [`uv`](https://docs.astral.sh/uv/) and Python 3.12+.
 
 ```bash
-git clone https://github.com/peterschwps/TGTG-CLI.git
-cd TGTG-CLI
+git clone https://github.com/peterschwps/TooGoodToGo-CLI.git
+cd TooGoodToGo-CLI
 uv sync
 uv run pre-commit install
 uv run pre-commit install --hook-type commit-msg
