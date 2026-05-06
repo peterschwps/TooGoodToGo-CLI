@@ -1,6 +1,10 @@
-# TGTG-CLI
+# TooGoodToGo-CLI
 
-Unofficial command-line client for the Too Good To Go service.
+`tgtg-cli` — unofficial command-line client for the Too Good To Go service.
+
+```bash
+pip install TGTG-CLI
+```
 
 > **Disclaimer**
 >

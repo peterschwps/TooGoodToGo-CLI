@@ -62,7 +62,7 @@ When all of the above is done:
 
 1. **Settings → General → Danger Zone → Change repository visibility →
    Public.** GitHub will prompt twice; confirm.
-2. Refresh the local `gh` cache: `gh repo view peterschwps/TGTG-CLI
+2. Refresh the local `gh` cache: `gh repo view peterschwps/TooGoodToGo-CLI
    --json visibility`.
 
 ---
@@ -74,7 +74,7 @@ When all of the above is done:
 GitHub Free plan unlocks these only on public repositories:
 
 ```bash
-REPO=peterschwps/TGTG-CLI
+REPO=peterschwps/TooGoodToGo-CLI
 
 # Secret scanning + push protection
 gh api -X PATCH "/repos/$REPO" \
@@ -95,7 +95,7 @@ publish to real PyPI cannot slip out unattended:
 
 ```bash
 USER_ID=$(gh api /users/peterschwps --jq '.id')
-gh api -X PUT /repos/peterschwps/TGTG-CLI/environments/pypi --input - <<EOF
+gh api -X PUT /repos/peterschwps/TooGoodToGo-CLI/environments/pypi --input - <<EOF
 {
   "reviewers": [
     {"type": "User", "id": $USER_ID}
@@ -132,7 +132,7 @@ If `0.1.0` should be the first published version regardless of what
 release-please calculates:
 
 ```bash
-cd /Users/admin/Development/TGTG-CLI
+cd /Users/admin/Development/TooGoodToGo-CLI
 git checkout main
 git pull
 git tag -a v0.1.0 -m "v0.1.0"

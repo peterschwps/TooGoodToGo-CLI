@@ -40,10 +40,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/peterschwps/TGTG-CLI"
-Repository = "https://github.com/peterschwps/TGTG-CLI"
-Issues = "https://github.com/peterschwps/TGTG-CLI/issues"
-Changelog = "https://github.com/peterschwps/TGTG-CLI/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/peterschwps/TooGoodToGo-CLI"
+Repository = "https://github.com/peterschwps/TooGoodToGo-CLI"
+Issues = "https://github.com/peterschwps/TooGoodToGo-CLI/issues"
+Changelog = "https://github.com/peterschwps/TooGoodToGo-CLI/blob/main/CHANGELOG.md"
 
 [project.scripts]
 tgtg-cli = "tgtg_cli.cli.__main__:main"
