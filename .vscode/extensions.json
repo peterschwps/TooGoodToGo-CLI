@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "astral-sh.ty",
+    "charliermarsh.ruff",
+    "editorconfig.editorconfig",
+    "vivaxy.vscode-conventional-commits"
+  ]
+}

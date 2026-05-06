@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / Discussion
+    url: https://github.com/peterschwps/TGTG-CLI/discussions/categories/q-a
+    about: For usage questions or help getting started, please use Discussions.
+  - name: Security Vulnerability
+    url: https://github.com/peterschwps/TGTG-CLI/security/advisories/new
+    about: Report security issues privately, not in public issues.

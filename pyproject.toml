@@ -1,0 +1,88 @@
+[project]
+name = "TGTG-CLI"
+version = "0.1.0"
+description = "Unofficial CLI for 'Too Good To Go' to monitor and check out items as they become available."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Peter Schwips", email = "tgtg-cli@peterschwps.com" }]
+keywords = ["CLI", "TGTG", "TooGoodToGo", "Too Good To Go", "Monitor", "Automation", "Reserve"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "capsolver>=1.0.7",
+    "cryptography>=43.0.0",
+    "email-validator>=2.3.0",
+    "fake-useragent>=2.2.0",
+    "packaging>=24.0",
+    "platformdirs>=4.5.0",
+    "pycryptodome>=3.23.0",
+    "pydantic>=2.12.5",
+    "pydantic-extra-types>=2.11.0",
+    "requests>=2.32.5",
+    "rich>=14.2.0",
+    "socksio>=1.0.0",
+    "typing-extensions>=4.15.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/peterschwps/TGTG-CLI"
+Repository = "https://github.com/peterschwps/TGTG-CLI"
+Issues = "https://github.com/peterschwps/TGTG-CLI/issues"
+Changelog = "https://github.com/peterschwps/TGTG-CLI/blob/main/CHANGELOG.md"
+
+[project.scripts]
+tgtg-cli = "tgtg_cli.cli.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 79
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # Pyflakes
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "G",    # flake8-logging-format
+    "I",    # isort
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers --strict-config"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["src/tgtg_cli"]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.0",
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+    "pytest-mock>=3.15.1",
+    "responses>=0.26.0",
+    "ruff>=0.15.12",
+    "ty>=0.0.34",
+]
+

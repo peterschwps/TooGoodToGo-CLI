@@ -1,0 +1,94 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build artifacts and distribution packages
+build/
+dist/
+*.egg-info/
+*.egg
+wheels/
+
+# C extensions
+*.so
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test, coverage, and type checker caches
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+htmlcov/
+coverage.xml
+nosetests.xml
+*.cover
+.hypothesis/
+
+# Linter and type checker caches
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment / secret files
+.env
+.env.*
+!.env.example
+.envrc
+
+# uv (lock file is committed; cache is not)
+.uv-cache/
+
+# Jupyter / IPython
+.ipynb_checkpoints
+profile_default/
+ipython_config.py
+
+# Sphinx / mkdocs documentation
+docs/_build/
+site/
+
+# IDE: JetBrains (PyCharm, IntelliJ)
+.idea/
+
+# IDE: VSCode (only commit team-shared config files)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# IDE: misc
+.spyderproject
+.spyproject
+.ropeproject
+
+# OS-specific noise
+**/.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Project-specific: runtime logs and local debug files
+logs/
+*.log

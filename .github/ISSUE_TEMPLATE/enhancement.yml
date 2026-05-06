@@ -1,0 +1,46 @@
+name: Enhancement
+description: Suggest a new feature, improvement, refactor, or other change.
+title: "enhancement: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type of enhancement
+      options:
+        - Feature
+        - Improvement
+        - Refactor
+        - Performance
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Problem or motivation
+      description: What triggers this request? What pain point or use case is it addressing?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What should change? Be as concrete as you can.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about and why you ruled them out.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, links, related issues, anything else useful.
