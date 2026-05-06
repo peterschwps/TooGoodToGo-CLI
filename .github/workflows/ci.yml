@@ -79,6 +79,13 @@ jobs:
       - name: Validate branch name
         run: |
           name="${{ github.head_ref }}"
+          # Exempt automation branches whose names follow each tool's
+          # own convention (Dependabot, release-please).
+          if [[ "$name" == dependabot/* ]] \
+             || [[ "$name" == release-please--* ]]; then
+            echo "::notice::Skipping branch-name check for bot branch '$name'"
+            exit 0
+          fi
           pattern='^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)/[a-z0-9._-]+$'
           if ! echo "$name" | grep -Eq "$pattern"; then
             echo "::error::Branch '$name' must match: $pattern"
