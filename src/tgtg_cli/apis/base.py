@@ -4,7 +4,7 @@ from urllib.parse import parse_qsl
 
 import requests
 
-from tgtg_cli import config
+from tgtg_cli.cli.config import Config
 from tgtg_cli.utils.exceptions import RetryLimitReached, UnexpectedResponse
 from tgtg_cli.utils.logging import get_logger
 
@@ -13,6 +13,7 @@ class BaseClient:
 
     def __init__(
         self,
+        config: Config,
         headers: dict[str, str],
         proxy: str | None = None,
         timeout: int | float = 10,
@@ -21,6 +22,7 @@ class BaseClient:
         Initializes a requests session.
 
         Args:
+            config (Config): Instance of the Config class.
             headers (dict[str, str]): Headers to add to the session.
             proxy (str | None, optional): Proxy to add to the session.
                                           Defaults to None.
@@ -40,11 +42,12 @@ class BaseClient:
             )
 
         # Other attributes
+        self._config = config
         self.timeout = timeout
         self.quit_on_failed_retry = False
 
         # Retrieve logger and overwrite send() method if logging is enabled
-        if config.settings.application.enable_logging:
+        if self._config.settings.application.enable_logging:
             self.logger = get_logger()
             self.session.send = self._send_with_logging
         else:
@@ -181,7 +184,7 @@ class BaseClient:
             return response
 
     def _handle_internal_errors(
-        self, 
+        self,
         request: requests.PreparedRequest,
         response: requests.Response,
     ) -> tuple[bool, requests.Response | None]:

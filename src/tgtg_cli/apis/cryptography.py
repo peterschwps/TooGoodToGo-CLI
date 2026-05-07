@@ -1,6 +1,7 @@
 from typing import Literal
 
 from tgtg_cli.apis.base import BaseClient
+from tgtg_cli.cli.config import Config
 from tgtg_cli.utils.models import ThreeDS2Status
 
 URL: str = "https://peterschwps.com/api/tgtg"
@@ -19,11 +20,10 @@ class Endpoints:
 
 class Cryptography(BaseClient):
 
-    def __init__(self):
+    def __init__(self, config: Config):
         super().__init__(
-            headers={
-                "Accept": "*/*"
-            }
+            config=config,
+            headers={"Accept": "*/*"},
         )
 
     def get_encryptor(self) -> tuple[str, str]:
@@ -33,7 +33,7 @@ class Cryptography(BaseClient):
         and TooGoodToGo's /pay endpoint.
 
         Returns:
-            tuple[str, str]: AES key and initialization vector encoded as a 
+            tuple[str, str]: AES key and initialization vector encoded as a
                              url-safe base64 string.
         """
         response = self._get(url=Endpoints.ENCRYPTOR)
@@ -45,17 +45,17 @@ class Cryptography(BaseClient):
 
     def get_fingerprint(self, token: str) -> str:
         """
-        Retrieves an unique, encrypted fingerprint to submit to 
+        Retrieves an unique, encrypted fingerprint to submit to
         Adyen's /submitThreeDS2Fingerprint endpoint.
 
         Args:
-            token (str): Token from TooGoodToGo's /api/payment/v4 endpoint. 
-                         This token can be found inside the 'payload' field 
+            token (str): Token from TooGoodToGo's /api/payment/v4 endpoint.
+                         This token can be found inside the 'payload' field
                          of the response as soon as the 'state' field changes
-                         to 'ADDITIONAL_AUTHORIZATION_REQUIRED'. 
+                         to 'ADDITIONAL_AUTHORIZATION_REQUIRED'.
 
         Returns:
-            str: Encrypted fingerprint string to be submitted to Adyen. This 
+            str: Encrypted fingerprint string to be submitted to Adyen. This
                  value should be set as the 'fingerprintResult' parameter of
                  the payload.
         """
@@ -74,20 +74,20 @@ class Cryptography(BaseClient):
     ) -> tuple[str, str]:
         """
         Retrieves the URL of the 3DS challenge and the encrypted payload to
-        submit to it. The payload can initiate the challenge, submit 
+        submit to it. The payload can initiate the challenge, submit
         additional selections or confirm the challenge.
 
         Args:
-            token (str): Token from Adyen's /submitThreeDS2Fingerprint 
+            token (str): Token from Adyen's /submitThreeDS2Fingerprint
                          endpoint. This is the 'token' field which can be found
-                         inside the 'action' field of the response. 
+                         inside the 'action' field of the response.
             action (Literal[
                 "initialize",
                 "select",
                 "confirm",
             ]): If 'initialize' the payload will trigger a new 3DS challenge.
                 If 'select' then a selection string needs to be provided which
-                will be used to complete further steps required by the card 
+                will be used to complete further steps required by the card
                 issuer (e.g. trusting the merchant).
                 If 'confirm' the payload will indicate that the challenge has
                 been confirmed by the user and signal the server to process the
@@ -122,7 +122,7 @@ class Cryptography(BaseClient):
         challenge_url = payload["challengeUrl"]
         challenge_data = payload["challengeData"]
         return challenge_url, challenge_data
-    
+
     def get_3ds_challenge_status(
         self,
         token: str,
@@ -133,7 +133,7 @@ class Cryptography(BaseClient):
         challenge to be initiated.
 
         Args:
-            token (str): Token from Adyen's /submitThreeDS2Fingerprint 
+            token (str): Token from Adyen's /submitThreeDS2Fingerprint
                          endpoint. This is the 'token' field which can be found
                          inside the 'action' field of the response.
             challenge_response (str): Response of the server handling the 3DS

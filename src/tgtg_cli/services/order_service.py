@@ -45,15 +45,15 @@ class OrderService:
     #       initialization of additional classes before creating an order!
     @cached_property
     def _acs(self) -> AccessControlServer:
-        return AccessControlServer(user_agent=tgtg.user_agent)
+        return AccessControlServer(config=config, user_agent=tgtg.user_agent)
 
     @cached_property
     def _adyen(self) -> Adyen:
-        return Adyen()
+        return Adyen(config=config)
 
     @cached_property
     def _cryptography(self) -> Cryptography:
-        return Cryptography()
+        return Cryptography(config=config)
 
     def checkout_item(
         self,
@@ -715,7 +715,7 @@ class OrderService:
 
         # Check if issuer is supported
         # This would raise an UnsupportedProvider exception if the flow is not
-        # supported 
+        # supported
         acs_url = challenge_data["acsURL"]
         issuing_bank = self._acs.detect_issuer(acs_url)
 

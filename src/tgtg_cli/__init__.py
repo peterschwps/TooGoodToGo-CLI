@@ -25,7 +25,7 @@ except SettingsError as e:
 from tgtg_cli.apis.tgtg import TGTG
 
 try:
-    tgtg = TGTG()
+    tgtg = TGTG(config)
 except ConnectionError:
     console.clear()
     console.error(
