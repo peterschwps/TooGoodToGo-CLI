@@ -8,11 +8,12 @@ from urllib.parse import parse_qs, urlparse
 
 from pydantic_extra_types.payment import PaymentCardBrand, PaymentCardNumber
 
-from tgtg_cli import config, tgtg
 from tgtg_cli.apis.acs import AccessControlServer
 from tgtg_cli.apis.adyen import Adyen
 from tgtg_cli.apis.cryptography import Cryptography
+from tgtg_cli.apis.tgtg import TGTG
 from tgtg_cli.cli import console
+from tgtg_cli.cli.config import Config
 from tgtg_cli.cli.types import (
     Error,
     OrderStatusResult,
@@ -36,7 +37,9 @@ from tgtg_cli.utils.notifications import send_notification, send_webhook
 
 
 class OrderService:
-    def __init__(self):
+    def __init__(self, config: Config, tgtg: TGTG):
+        self._config = config
+        self._tgtg = tgtg
         self._checkout_details: CheckoutDetails
         self._order_details: OrderDetails
         self._payment_details: PaymentDetails
@@ -45,15 +48,18 @@ class OrderService:
     #       initialization of additional classes before creating an order!
     @cached_property
     def _acs(self) -> AccessControlServer:
-        return AccessControlServer(user_agent=tgtg.user_agent)
+        return AccessControlServer(
+            config=self._config,
+            user_agent=self._tgtg.user_agent,
+        )
 
     @cached_property
     def _adyen(self) -> Adyen:
-        return Adyen()
+        return Adyen(config=self._config)
 
     @cached_property
     def _cryptography(self) -> Cryptography:
-        return Cryptography()
+        return Cryptography(config=self._config)
 
     def checkout_item(
         self,
@@ -84,7 +90,7 @@ class OrderService:
         console.info(f"Creating order for item '{item_name}'...")
         self._create_order(item_id=item_id, count=count)
         send_notification(
-            topic=config.settings.monitor.ntfy_topic,
+            topic=self._config.settings.monitor.ntfy_topic,
             title="Item available!",
             message=(
                 f"The monitored item '{item_name}' is back in stock.\n"
@@ -153,7 +159,7 @@ class OrderService:
                 ) as status:
                     try:
                         send_webhook(
-                            topic=config.settings.monitor.ntfy_topic,
+                            topic=self._config.settings.monitor.ntfy_topic,
                             challenge_url=(
                                 self._checkout_details \
                                 .additional_authorization_details.url
@@ -180,7 +186,7 @@ class OrderService:
                     status="Waiting for user to complete the challenge...",
                 ) as status:
                     try:
-                        send_webhook(config.settings.monitor.ntfy_topic)
+                        send_webhook(self._config.settings.monitor.ntfy_topic)
                     except RuntimeError as e:
                         status.stop()
                         console.error(str(e), show_time=True)
@@ -302,7 +308,10 @@ class OrderService:
                             # Send webhook with confirmation button
                             try:
                                 send_webhook(
-                                    topic=config.settings.monitor.ntfy_topic,
+                                    topic=(
+                                        self._config.settings \
+                                        .monitor.ntfy_topic
+                                    ),
                                     seconds_to_wait=seconds_left,
                                 )
                             except RuntimeError as e:
@@ -340,7 +349,7 @@ class OrderService:
                                     challenge_status.challenge_select_info
                                 )
                                 selection = send_webhook(
-                                    topic=config.settings.monitor.ntfy_topic,
+                                    topic=self._config.settings.monitor.ntfy_topic,
                                     header=header,
                                     body=body,
                                     actions=actions,
@@ -401,7 +410,7 @@ class OrderService:
                 show_time=True,
             )
             send_notification(
-                topic=config.settings.monitor.ntfy_topic,
+                topic=self._config.settings.monitor.ntfy_topic,
                 title="Order aborted!",
                 message=(
                     f"Failed to complete order "
@@ -426,7 +435,7 @@ class OrderService:
         if order_status == "ACTIVE":
             console.success("Successfully completed order!")
             send_notification(
-                topic=config.settings.monitor.ntfy_topic,
+                topic=self._config.settings.monitor.ntfy_topic,
                 title="Order completed!",
                 message=(
                     f"Order #{self._order_details.id.upper()} was "
@@ -442,7 +451,7 @@ class OrderService:
                 status=f"Sleeping for {delay} seconds before proceeding...",
             ):
                 sleep(delay)
-            order_cancellation_details = tgtg.cancel_order(
+            order_cancellation_details = self._tgtg.cancel_order(
                 self._order_details.id
             )
             print(f"Order cancellation details: {order_cancellation_details}")
@@ -452,7 +461,7 @@ class OrderService:
         else:
             console.error(f"Order failed! Status: {order_status}.")
             send_notification(
-                topic=config.settings.monitor.ntfy_topic,
+                topic=self._config.settings.monitor.ntfy_topic,
                 title="Order failed!",
                 message=(
                     f"Failed to complete order "
@@ -471,7 +480,7 @@ class OrderService:
             item_id (str): ID of the item to order.
             count (int, optional): Number of items to order. Defaults to 1.
         """
-        order = tgtg.create_order(
+        order = self._tgtg.create_order(
             item_id=item_id,
             count=count,
         )
@@ -491,7 +500,7 @@ class OrderService:
         credit card. Stores the result in self._payment_details.
         """
         # Cast types for linter
-        payment_details = config.settings.payment
+        payment_details = self._config.settings.payment
         card_number = cast(PaymentCardNumber, payment_details.card_number)
         card_expiry_month = cast(int, payment_details.card_expiry_month)
         card_expiry_year = cast(int, payment_details.card_expiry_year)
@@ -561,16 +570,16 @@ class OrderService:
         """
         # Start checkout attempt
         checkout_attempt_id = self._adyen.get_checkout_attempt_id(
-            device_brand=config.device.brand,
-            device_model=config.device.model,
-            system_version=config.device.system_version,
-            screen_width=config.device.screen_width,
+            device_brand=self._config.device.brand,
+            device_model=self._config.device.model,
+            system_version=self._config.device.system_version,
+            screen_width=self._config.device.screen_width,
             code=self._order_details.code,
             minor_units=self._order_details.minor_units,
         )
 
         # Initiate payment
-        payment = tgtg.pay_order(
+        payment = self._tgtg.pay_order(
             checkout_attempt_id=checkout_attempt_id,
             encrypted_card_number=self._payment_details.encrypted_card_number,
             encrypted_expiry_month=(
@@ -614,7 +623,7 @@ class OrderService:
             )
 
         # Set latest payment status
-        current_payment_status = tgtg.get_payment_status(
+        current_payment_status = self._tgtg.get_payment_status(
             payment_id=self._checkout_details.payment_id,
         )
         self._checkout_details.state = CheckoutState(
@@ -715,7 +724,7 @@ class OrderService:
 
         # Check if issuer is supported
         # This would raise an UnsupportedProvider exception if the flow is not
-        # supported 
+        # supported
         acs_url = challenge_data["acsURL"]
         issuing_bank = self._acs.detect_issuer(acs_url)
 
@@ -869,11 +878,14 @@ class OrderService:
                 "Unable to submit additional authorization. "
                 "Payment ID is missing."
             )
-        additional_authorization_result = tgtg.submit_additional_authorization(
-            payment_id=self._checkout_details.payment_id,
-            authorisation_token=(
-                self._checkout_details.three_ds2_details.authorisation_token
-            ),
+        additional_authorization_result = (
+            self._tgtg.submit_additional_authorization(
+                payment_id=self._checkout_details.payment_id,
+                authorisation_token=(
+                    self._checkout_details \
+                    .three_ds2_details.authorisation_token
+                ),
+            )
         )
         self._checkout_details.state = CheckoutState(
             additional_authorization_result["state"]
@@ -891,11 +903,13 @@ class OrderService:
         Returns:
             str: State of the order.
         """
-        response = tgtg.get_order_status(order_id=self._order_details.id)
+        response = self._tgtg.get_order_status(order_id=self._order_details.id)
         if "errors" in response:
             sleep(1)
             response = cast(Error, response)
-            response = tgtg.get_order_status(order_id=self._order_details.id)
+            response = self._tgtg.get_order_status(
+                order_id=self._order_details.id,
+            )
             if "errors" in response:
                 response = cast(Error, response)
                 raise UnexpectedResponse(

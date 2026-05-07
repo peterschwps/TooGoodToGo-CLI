@@ -6,8 +6,9 @@ from typing import Any, cast, get_args
 from rich import box
 from rich.table import Table
 
-from tgtg_cli import config, tgtg
+from tgtg_cli.apis.tgtg import TGTG
 from tgtg_cli.cli import console
+from tgtg_cli.cli.config import Config
 from tgtg_cli.cli.menu import show_selection
 from tgtg_cli.cli.types import DietCategory, ItemCategory, SortOption
 from tgtg_cli.services.order_service import OrderService
@@ -17,12 +18,13 @@ from tgtg_cli.utils.notifications import send_notification
 
 
 class ProductService:
-    """
-    Grouping of all product-related functions.
-    """
 
-    @staticmethod
+    def __init__(self, config: Config, tgtg: TGTG):
+        self._config = config
+        self._tgtg = tgtg
+
     def _get_item_availability(
+        self,
         latitude: float,
         longitude: float,
         item_id: str,
@@ -38,15 +40,15 @@ class ProductService:
         Returns:
             int: Number of currently available items.
         """
-        item = tgtg.get_item(
+        item = self._tgtg.get_item(
             latitude=latitude,
             longitude=longitude,
             item_id=item_id,
         )
         return item["items_available"]
 
-    @staticmethod
     def _get_items(
+        self,
         latitude: float,
         longitude: float,
         radius: int,
@@ -121,7 +123,7 @@ class ProductService:
             "sort_option": sort_option,
             "expand_radius_if_not_enough_items": False,
         }
-        search_result = tgtg.get_items(**search_args)
+        search_result = self._tgtg.get_items(**search_args)
 
         # Combine items (if expanded radius is used items list is empty
         # and vice versa))
@@ -149,7 +151,7 @@ class ProductService:
             # Fetch next page
             search_args["page"] += 1
             sleep(1)  # to prevent rate limiting
-            search_result = tgtg.get_items(**search_args)
+            search_result = self._tgtg.get_items(**search_args)
 
             # Update items with contents of new page
             items = (
@@ -158,8 +160,7 @@ class ProductService:
 
         return all_items
 
-    @staticmethod
-    def _configure_filters() -> dict[str, Any]:
+    def _configure_filters(self) -> dict[str, Any]:
         """
         Configures all filter options.
 
@@ -240,8 +241,7 @@ class ProductService:
 
         return custom_args
 
-    @staticmethod
-    def monitor(selected_item: ItemOverview | None = None) -> None:
+    def monitor(self, selected_item: ItemOverview | None = None) -> None:
         """
         Monitors an item. Asks the user to configure filters, then searches for
         items matching the criteria and prompts the user to select one of them.
@@ -263,10 +263,10 @@ class ProductService:
                            config validation is working as expected.
         """
         # Load values from config
-        latitude = config.settings.account.latitude
-        longitude = config.settings.account.longitude
-        radius = config.settings.account.radius
-        
+        latitude = self._config.settings.account.latitude
+        longitude = self._config.settings.account.longitude
+        radius = self._config.settings.account.radius
+
         # Start filter configuration and item selection if no item is provided
         # (meaning it is the first time running the method)
         if not selected_item:
@@ -278,7 +278,7 @@ class ProductService:
             custom_args = {}
             if custom_filter:
                 console.clear()
-                custom_args = ProductService._configure_filters()
+                custom_args = self._configure_filters()
 
             # Print notice to console
             console.clear()
@@ -288,7 +288,7 @@ class ProductService:
                     "This might take some seconds..."
                 ),
             ):
-                items = ProductService._get_items(
+                items = self._get_items(
                     latitude=latitude,
                     longitude=longitude,
                     radius=radius,
@@ -353,7 +353,7 @@ class ProductService:
                 str: Status message to be shown in the console.
             """
             item = selected_item.name
-            delay = config.settings.monitor.delay_in_milliseconds
+            delay = self._config.settings.monitor.delay_in_milliseconds
             return (
                 f"Monitoring '{item}' to be back in stock...\n"
                 f"➤ Delay: {delay} ms\n"
@@ -364,7 +364,7 @@ class ProductService:
         console.clear()
         with console.loading(status=get_monitoring_message()) as status:
             while True:
-                items_available = ProductService._get_item_availability(
+                items_available = self._get_item_availability(
                     latitude=latitude,
                     longitude=longitude,
                     item_id=selected_item.id,
@@ -372,12 +372,14 @@ class ProductService:
                 if items_available > 0:
                     break
                 status.update(get_monitoring_message())
-                sleep(config.settings.monitor.delay_in_milliseconds / 1000)
+                sleep(
+                    self._config.settings.monitor.delay_in_milliseconds / 1000
+                )
 
         # Stop if checkout is disabled
-        if not config.settings.application.enable_checkout:
+        if not self._config.settings.application.enable_checkout:
             send_notification(
-                topic=config.settings.monitor.ntfy_topic,
+                topic=self._config.settings.monitor.ntfy_topic,
                 title="Item available!",
                 message=(
                     f"The monitored item '{selected_item.name}' is back in "
@@ -391,10 +393,10 @@ class ProductService:
         # Check for errors regarding payment setup
         # (should not happen if config validation is working as expected)
         if None in (
-            config.settings.payment.card_number,
-            config.settings.payment.card_expiry_month,
-            config.settings.payment.card_expiry_year,
-            config.settings.payment.card_security_code,
+            self._config.settings.payment.card_number,
+            self._config.settings.payment.card_expiry_month,
+            self._config.settings.payment.card_expiry_year,
+            self._config.settings.payment.card_security_code,
         ):
             raise SettingsError(
                 "Invalid payment setup. "
@@ -404,7 +406,7 @@ class ProductService:
         # Start checkout
         # Not sending a notification until order is reserved to not slow down
         # the checkout process
-        payment_service = OrderService()
+        payment_service = OrderService(config=self._config, tgtg=self._tgtg)
         order_successful = False
         while not order_successful:
             console.clear()
@@ -413,7 +415,7 @@ class ProductService:
                 item_name=selected_item.name,
             )
             if not order_successful:
-                items_available = ProductService._get_item_availability(
+                items_available = self._get_item_availability(
                     latitude=latitude,
                     longitude=longitude,
                     item_id=selected_item.id,
@@ -424,7 +426,7 @@ class ProductService:
                         "Restarting monitoring...",
                         show_time=True,
                     )
-                    return ProductService.monitor(selected_item=selected_item)
+                    return self.monitor(selected_item=selected_item)
                 else:
                     console.info("Starting another checkout attempt...")
                     continue

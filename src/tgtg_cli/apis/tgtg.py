@@ -7,8 +7,8 @@ from uuid import uuid4
 import requests
 from bs4 import BeautifulSoup
 
-from tgtg_cli import config
 from tgtg_cli.apis.base import BaseClient
+from tgtg_cli.cli.config import Config
 from tgtg_cli.cli.types import (
     AuthByEmailResult,
     AuthByRequestPinResult,
@@ -65,15 +65,18 @@ class Endpoints:
 
 
 class TGTG(BaseClient):
-    def __init__(self):
+    def __init__(self, config: Config):
+        self._config = config
+
         # Configure session
         self.user_agent = (
             f"TGTG/{self._get_latest_app_version()} Dalvik/2.1.0 "
-            f"(Linux; U; Android {config.device.android_version}; "
-            f"{config.device.model} "
-            f"Build/{config.device.build_number})"
+            f"(Linux; U; Android {self._config.device.android_version}; "
+            f"{self._config.device.model} "
+            f"Build/{self._config.device.build_number})"
         )
         super().__init__(
+            config=self._config,
             headers={
                 "Content-Type": "application/json; charset=utf-8",
                 "X-Correlation-ID": str(uuid4()),
@@ -82,11 +85,11 @@ class TGTG(BaseClient):
                 "Accept-Language": "en-GB",
                 "Accept-Encoding": "gzip, deflate, br",
             },
-            proxy=config.settings.account.proxy,
+            proxy=self._config.settings.account.proxy,
         )
 
         # Add Authorization header if cached session tokens are available
-        self.tokens = config.get_session_tokens()
+        self.tokens = self._config.get_session_tokens()
 
     @property
     def tokens(self) -> SessionTokens | None:
@@ -242,7 +245,7 @@ class TGTG(BaseClient):
                             self.tokens = SessionTokens.from_api(tokens)
 
                             # Save new tokens to cache
-                            config.save_session(tokens=self.tokens)
+                            self._config.save_session(tokens=self.tokens)
 
                         # Resend failed request
                         self._update_prepared_request(request)
@@ -318,8 +321,8 @@ class TGTG(BaseClient):
             # amounts of solves (e.g. when monitoring with low delays).
             # IMPORTANT: This check raises an AuthorizationError if the
             # received Datadome cookie does not work.
-            capsolver_api_key = config.settings.solver.capsolver_api_key
-            proxy = config.settings.account.proxy
+            capsolver_api_key = self._config.settings.solver.capsolver_api_key
+            proxy = self._config.settings.account.proxy
             if (
                 response.status_code == 403
                 and response.url == Endpoints.AUTH_BY_EMAIL

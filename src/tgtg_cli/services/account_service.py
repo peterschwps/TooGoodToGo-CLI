@@ -1,18 +1,19 @@
 import string
 
-from tgtg_cli import config, tgtg
+from tgtg_cli.apis.tgtg import TGTG
 from tgtg_cli.cli import console
+from tgtg_cli.cli.config import Config
 from tgtg_cli.utils.exceptions import AuthorizationError, InvalidSession
 from tgtg_cli.utils.models import SessionTokens
 
 
 class AccountService:
-    """
-    Grouping of all account-related functions.
-    """
 
-    @staticmethod
-    def is_logged_in() -> bool:
+    def __init__(self, config: Config, tgtg: TGTG):
+        self._config = config
+        self._tgtg = tgtg
+
+    def is_logged_in(self) -> bool:
         """
         Checks if the session tokens are set and valid. Sends a request to the
         onStartup endpoint to validate the current tokens.
@@ -22,35 +23,33 @@ class AccountService:
         Returns:
             bool: True if the user is logged in, else False.
         """
-        if tgtg.tokens is None:
+        if self._tgtg.tokens is None:
             return False
         else:
             try:
-                startup_response_code = tgtg.on_startup()
+                startup_response_code = self._tgtg.on_startup()
             except InvalidSession as error:
-                config.generate_new_session_file()
+                self._config.generate_new_session_file()
                 raise InvalidSession(
                     "Unable to log into the account."
                 ) from error
 
             if startup_response_code != 200:
                 console.warning("Session invalid.")
-                config.generate_new_session_file()
-                tgtg.tokens = None
-            return tgtg.tokens is not None
+                self._config.generate_new_session_file()
+                self._tgtg.tokens = None
+            return self._tgtg.tokens is not None
 
-    @staticmethod
-    def logout():
+    def logout(self):
         """
         Logs out the user by clearing the current session tokens and generating
         a new session file with empty default values.
         """
-        config.generate_new_session_file()
-        tgtg.tokens = None
+        self._config.generate_new_session_file()
+        self._tgtg.tokens = None
         console.success("Successfully logged out!", show_time=False)
 
-    @staticmethod
-    def login(device_type: str = "ANDROID") -> None:
+    def login(self, device_type: str = "ANDROID") -> None:
         """
         Logs in an existing user by email. Requests a verification code and
         prompts the user to enter it. Then submits the code and stores the
@@ -63,8 +62,8 @@ class AccountService:
         Raises:
             AuthorizationError: If an error occured during the login process.
         """
-        email = config.settings.account.email
-        login_response = tgtg.initiate_login(
+        email = self._config.settings.account.email
+        login_response = self._tgtg.initiate_login(
             device_type=device_type,
             email=email
         )
@@ -98,7 +97,7 @@ class AccountService:
             )
 
         # Submit email verification code
-        login_response = tgtg.complete_login(
+        login_response = self._tgtg.complete_login(
             device_type=device_type,
             email=email,
             code=email_verification_code,
@@ -107,9 +106,9 @@ class AccountService:
 
         # Login process completed
         if "access_token" in login_response:
-            tgtg.tokens = SessionTokens.from_api(login_response)
-            if tgtg.tokens:
-                config.save_session(tgtg.tokens)
+            self._tgtg.tokens = SessionTokens.from_api(login_response)
+            if self._tgtg.tokens:
+                self._config.save_session(self._tgtg.tokens)
                 console.clear()
                 console.success("Successfully logged in!", show_time=False)
             else:

@@ -3,17 +3,19 @@ from importlib.metadata import PackageNotFoundError, version
 from typing import Annotated
 
 import typer
+from requests.exceptions import ConnectionError
 from typer import rich_utils
 
-from tgtg_cli import config, console
+from tgtg_cli.cli import console
+from tgtg_cli.cli.config import Config
 from tgtg_cli.cli.executor import (
     Failure,
     execute_selected_method,
     run_safely,
 )
 from tgtg_cli.cli.menu import MenuOptions, show_menu_with_selection
-from tgtg_cli.services.account_service import AccountService
-from tgtg_cli.services.product_service import ProductService
+from tgtg_cli.container import Container
+from tgtg_cli.utils.exceptions import SettingsError
 from tgtg_cli.utils.version import PACKAGE_NAME
 
 # Configure styles for help output
@@ -82,9 +84,40 @@ def main(
                                                     for the application.
     """
     console.clear()
+
+    # Build container and initialize Config and TGTG singletons
+    # Both providers are lazy and need to be resolved here
+    # Initializing the Config class checks the user's settings file for errors
+    # and loads all required variables for the application
+    container = Container()
+    try:
+        container.config()
+        container.tgtg()
+
+    except SettingsError as e:
+        console.clear()
+        console.error(f"Settings error: {e}")
+        console.blank()
+        Config.open_settings_file()
+        sys.exit(1)
+
+    except ConnectionError:
+        console.clear()
+        console.error(
+            "Failed to establish a connection. "
+            "Make sure you are connected to the internet."
+        )
+        sys.exit(1)
+
+    # Resolve services
+    account_service = container.account_service()
+    product_service = container.product_service()
+
+    # Start main loop
     while True:
+
         # Check if user is logged in to display corresponding menu options)
-        result = run_safely(AccountService.is_logged_in)
+        result = run_safely(account_service.is_logged_in)
         if isinstance(result, Failure):
             sys.exit(0 if result is Failure.KEYBOARD_INTERRUPT else 1)
 
@@ -97,16 +130,16 @@ def main(
                 sys.exit(0)
 
             case MenuOptions.Login:
-                execute_selected_method(AccountService.login)
+                execute_selected_method(account_service.login)
 
             case MenuOptions.Logout:
-                execute_selected_method(AccountService.logout)
+                execute_selected_method(account_service.logout)
 
             case MenuOptions.Monitor:
-                execute_selected_method(ProductService.monitor)
+                execute_selected_method(product_service.monitor)
 
             case MenuOptions.Settings:
                 execute_selected_method(
-                    config.open_settings_file,
+                    Config.open_settings_file,
                     exit_afterwards=True,
                 )

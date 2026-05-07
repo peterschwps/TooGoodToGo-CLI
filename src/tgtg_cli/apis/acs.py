@@ -2,23 +2,25 @@ import re
 from typing import cast
 from urllib.parse import urlsplit
 
-from tgtg_cli import config
 from tgtg_cli.apis.base import BaseClient
+from tgtg_cli.cli.config import Config
 from tgtg_cli.utils.exceptions import UnexpectedResponse, UnsupportedIssuer
 from tgtg_cli.utils.models import DKB, Bunq, Issuer
 from tgtg_cli.utils.parsing import HTMLFormParser
 
 
 class AccessControlServer(BaseClient):
-    def __init__(self, user_agent: str):
+    def __init__(self, config: Config, user_agent: str):
         """
         Initializes the class.
 
         Args:
+            config (Config): Instance of the Config class.
             user_agent (str): User agent to use. Should be the same as the one
                               used for the TGTG client.
         """
         super().__init__(
+            config=config,
             headers={
                 "Accept": "*/*",
                 "User-Agent": user_agent,
@@ -26,7 +28,7 @@ class AccessControlServer(BaseClient):
             },
             proxy=config.settings.account.proxy,
         )
-    
+
     @staticmethod
     def detect_issuer(acs_url: str) -> type[Issuer]:
         """

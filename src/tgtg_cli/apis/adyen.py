@@ -6,8 +6,8 @@ from uuid import uuid4
 
 from bs4 import BeautifulSoup
 
-from tgtg_cli import config
 from tgtg_cli.apis.base import BaseClient
+from tgtg_cli.cli.config import Config
 from tgtg_cli.cli.types import (
     BinLookupResult,
     ThreeDS2FingerprintResultAction,
@@ -50,11 +50,12 @@ class Endpoints:
 
 class Adyen(BaseClient):
 
-    def __init__(self):
+    def __init__(self, config: Config):
         # IMPORTANT: The user agent header can't be fetched dynamically and
         #            needs to be updated manually if it changes in newer
         #            versions of the Adyen SDK.
         super().__init__(
+            config=config,
             headers={
                 "User-Agent": f"okhttp/{OKHTTP_VERSION}",
                 "Accept-Encoding": "gzip",
@@ -228,7 +229,7 @@ class Adyen(BaseClient):
         """
         # Submit form
         response = self._post(url=action_url, data=payload)
-        
+
         # Load 'challengeToken' from response
         soup = BeautifulSoup(response.text, "html.parser")
         script_tag = None
@@ -376,7 +377,7 @@ class Adyen(BaseClient):
             field["name"]: field["value"]
             for field in form.find_all("input", type="hidden")
         }
-        
+
         # Submit form (Return #2)
         response = self._post(
             url=return_url,
