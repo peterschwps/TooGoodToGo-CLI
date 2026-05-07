@@ -36,6 +36,7 @@ dependencies = [
     "requests>=2.33.0",
     "rich>=14.2.0",
     "socksio>=1.0.0",
+    "typer>=0.20.0",
     "typing-extensions>=4.15.0",
 ]
 
@@ -46,7 +47,10 @@ Issues = "https://github.com/peterschwps/TooGoodToGo-CLI/issues"
 Changelog = "https://github.com/peterschwps/TooGoodToGo-CLI/blob/main/CHANGELOG.md"
 
 [project.scripts]
+tgtg = "tgtg_cli.cli.__main__:main"
 tgtg-cli = "tgtg_cli.cli.__main__:main"
+toogoodtogo = "tgtg_cli.cli.__main__:main"
+toogoodtogo-cli = "tgtg_cli.cli.__main__:main"
 
 [build-system]
 requires = ["hatchling"]

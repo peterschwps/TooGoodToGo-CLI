@@ -11,12 +11,17 @@ def test_package_metadata_available() -> None:
     assert metadata["Version"]
 
 
-def test_console_script_registered() -> None:
+def test_console_scripts_registered() -> None:
     """
-    The `tgtg-cli` console-script entry point must be registered.
+    All console-script entry points must be registered.
     """
     entry_points = importlib.metadata.entry_points(
         group="console_scripts"
     )
+    names = {ep.name for ep in entry_points}
 
-    assert any(ep.name == "tgtg-cli" for ep in entry_points)
+    assert "tgtg" in names
+    assert "tgtg-cli" in names
+    assert "toogoodtogo" in names
+    assert "toogoodtogo-cli" in names
+

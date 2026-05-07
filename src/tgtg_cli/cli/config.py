@@ -71,7 +71,7 @@ DEFAULT_SETTINGS: dict[str, dict[str, str]] = {
 
 def _convert_empty_string_to_none(value: object) -> object:
     """
-    Converts an empty string to None. If the value passed is not an empty 
+    Converts an empty string to None. If the value passed is not an empty
     string or of a different type, the value is returned unchanged.
 
     Args:
@@ -82,11 +82,11 @@ def _convert_empty_string_to_none(value: object) -> object:
     """
     if isinstance(value, str) and value.strip() == "":
         return None
-    return value   
+    return value
 
 class AccountSettings(BaseModel):
     email: EmailStr = Field(alias="EMAIL", min_length=5)
-    # Hint: Using float instead of Decimal because it can be serialized in 
+    # Hint: Using float instead of Decimal because it can be serialized in
     #       the JSON payloads. The precision differences are negligible.
     latitude: float = Field(alias="LATITUDE")
     longitude: float = Field(alias="LONGITUDE")
@@ -182,7 +182,7 @@ class AccountSettings(BaseModel):
                 "Invalid proxy format. "
                 "Format must be: username:password@hostname:port."
             ) from error
-            
+
         for name, part in (
             ("username", username),
             ("password", password),
@@ -446,7 +446,7 @@ class SettingsModel(BaseModel):
     def _validate_checkout_dependency(self) -> Self:
         """
         Validates the checkout dependencies. If checkout is enabled, all card
-        details must be provided. 
+        details must be provided.
 
         Raises:
             SettingsError: If checkout is enabled but card details are missing.
@@ -567,7 +567,7 @@ class Config:
         if not SETTINGS_FILE_PATH.exists():
             self.generate_new_settings_file()
 
-        # Load settings file 
+        # Load settings file
         parser = configparser.ConfigParser()
         parser.read(SETTINGS_FILE_PATH)
 
@@ -593,6 +593,7 @@ class Config:
             return SettingsModel.model_validate(settings_dict)
 
         except ValidationError as exc:
+            console.clear()
             console.error("Corrupt settings file:")
             for error in exc.errors():
                 error_type = error.get("type")
@@ -600,7 +601,7 @@ class Config:
 
                 # Show specific error message for different error types
                 if (
-                    error_type == "value_error" and 
+                    error_type == "value_error" and
                     error.get("loc") == ("ACCOUNT", "EMAIL")
                 ):
                     console.error(
@@ -764,7 +765,7 @@ class Config:
                 for key, default_value in values.items():
                     settings.set(section, key, default_value)
             settings.write(settings_file)
-        
+
         # Open settings file and exit program
         console.info(
             "New settings file generated. "

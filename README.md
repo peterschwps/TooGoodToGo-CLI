@@ -1,9 +1,18 @@
 # TooGoodToGo-CLI
 
-`tgtg-cli` — unofficial command-line client for the Too Good To Go service.
+**Unofficial CLI for 'Too Good To Go' to monitor and check out items as they become available.**
 
 ```bash
 pip install TGTG-CLI
+```
+
+```bash
+tgtg              # start the interactive menu
+tgtg-cli          # alias, identical behaviour
+toogoodtogo       # alias, identical behaviour
+toogoodtogo-cli   # alias, identical behaviour
+tgtg --help
+tgtg --version
 ```
 
 > **Disclaimer**
