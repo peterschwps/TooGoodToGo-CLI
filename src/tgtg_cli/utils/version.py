@@ -45,12 +45,12 @@ def check_for_update() -> None:
     # Compare version and print notice if newer version available
     try:
         if parse(latest) > parse(current):
+            console.clear()
             console.warning(
                 f"New version available: {current} → {latest}.\n"
                 f"Run 'pip install --upgrade {PACKAGE_NAME}' to update."
             )
             sleep(3)
-            console.clear()
     except InvalidVersion:
         return
 
