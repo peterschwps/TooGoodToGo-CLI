@@ -1,5 +1,4 @@
 import sys
-import traceback
 from collections.abc import Callable
 from enum import Enum, auto
 from time import sleep
@@ -101,8 +100,8 @@ def run_safely[Value](method: Callable[[], Value]) -> Result[Value]:
         if render_exception(e):
             return Failure.KNOWN_ERROR
         else:
-            console.error(f"Unhandled exception: {str(e).rstrip('.')}.")
-            console.info(traceback.format_exc(), show_time=False)
+            console.error("\n[b]An unhandled exception occurred:[b]\n")
+            console.print_exception()
             return Failure.UNHANDLED
 
 
