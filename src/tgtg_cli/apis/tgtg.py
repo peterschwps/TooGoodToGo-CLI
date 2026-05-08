@@ -462,6 +462,10 @@ class TGTG(BaseClient):
         """
         Initiates the login process by requesting an email verification code.
 
+        Args:
+            device_type (str): Device type to use, e.g. 'ANDROID'.
+            email (str): Email address of the account to log in.
+
         Returns:
             AuthByEmailResult | DatadomeCaptchaResult: Result of the request
                                                        containing either the

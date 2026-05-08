@@ -26,7 +26,7 @@ class CustomizedPrompt(Prompt):
 
     def __init__(self, *args, console: "CustomizedConsole", **kwargs):
         super().__init__(*args, console=console, **kwargs)
-        self.console: CustomizedConsole  # only for the type checker 
+        self.console: CustomizedConsole  # only for the type checker
 
     # Override error message
     def on_validate_error(self, value: str, *args, **kwargs):
@@ -43,6 +43,9 @@ class CustomizedPrompt(Prompt):
         """
         Sets an additional flag to signal that the console is currently waiting
         for input from the user.
+
+        Returns:
+            str: String value entered by the user.
         """
         self.console._awaiting_input = True
         result = super().ask(*args, **kwargs)
@@ -54,7 +57,7 @@ class CustomizedIntPrompt(IntPrompt):
 
     def __init__(self, *args, console: "CustomizedConsole", **kwargs):
         super().__init__(*args, console=console, **kwargs)
-        self.console: CustomizedConsole  # only for the type checker     
+        self.console: CustomizedConsole  # only for the type checker
 
     # Override error message
     def on_validate_error(self, value: str, *args, **kwargs):
@@ -71,6 +74,9 @@ class CustomizedIntPrompt(IntPrompt):
         """
         Sets an additional flag to signal that the console is currently waiting
         for input from the user.
+
+        Returns:
+            int: Integer value entered by the user.
         """
         self.console._awaiting_input = True
         result = super().ask(*args, **kwargs)
@@ -82,7 +88,7 @@ class CustomizedConfirmPrompt(Confirm):
 
     def __init__(self, *args, console: "CustomizedConsole", **kwargs):
         super().__init__(*args, console=console, **kwargs)
-        self.console: CustomizedConsole  # only for the type checker 
+        self.console: CustomizedConsole  # only for the type checker
 
     # Override error message
     def on_validate_error(self, value: str, *args, **kwargs):
@@ -103,6 +109,9 @@ class CustomizedConfirmPrompt(Confirm):
         """
         Sets an additional flag to signal that the console is currently waiting
         for input from the user.
+
+        Returns:
+            bool: True if the user confirmed, otherwise False.
         """
         self.console._awaiting_input = True
         result = super().ask(*args, **kwargs)
@@ -157,7 +166,7 @@ class CustomizedRenderable:
             f"{prefix}{self.text}{dots if dots else ''}",
             style="white",
         )
-    
+
     def _get_current_time(self) -> str:
         """
         Returns the current local time formatted for console output.
@@ -233,7 +242,7 @@ class CustomizedStatus(Status):
 
 
 class CustomizedConsole(Console):
-    
+
     def __init__(self):
         super().__init__(highlight=False)
         self.prompt = CustomizedPrompt(console=self, show_choices=False)
@@ -249,18 +258,21 @@ class CustomizedConsole(Console):
             str: Current timestamp in YYYY-MM-DD HH:MM:SS format.
         """
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    def _add_timestamp(self, message: str):
+
+    def _add_timestamp(self, message: str) -> str:
         """
         Prefixes a message with the current timestamp.
 
         Args:
             message (str): Message to add the timestamp to.
+
+        Returns:
+            str: Message with the timestamp prefix.
         """
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"{timestamp} - {message}"
         return message
-    
+
     def _print(self, message: str, show_time: bool = True, **kwargs):
         """
         Adds an option to prefix a message with a timestamp when calling the
@@ -268,8 +280,8 @@ class CustomizedConsole(Console):
 
         Args:
             message (str): Message to display in the console.
-            show_time (bool, optional): If a timestamp should be added as a 
-                                        prefix. This only works on string 
+            show_time (bool, optional): If a timestamp should be added as a
+                                        prefix. This only works on string
                                         messages!
                                         Defaults to True.
         """
@@ -304,7 +316,7 @@ class CustomizedConsole(Console):
         ) -> CustomizedLive:
         """
         Creates a CustomizedLive (inherits from Rich's Live display) which
-        refreshes the status text displayed in the console. 
+        refreshes the status text displayed in the console.
 
         Args:
             status (str): Text to show in the console.
@@ -322,9 +334,9 @@ class CustomizedConsole(Console):
                                         Defaults to True.
 
         Returns:
-            CustomizedLive: Instance of the CustomizedLive class (which 
+            CustomizedLive: Instance of the CustomizedLive class (which
                             inherits from Rich's Live class) and can be used
-                            with a context manager. 
+                            with a context manager.
         """
         renderable = CustomizedRenderable(
             text=status,
@@ -337,8 +349,8 @@ class CustomizedConsole(Console):
             refresh_per_second=refresh_per_second,
             add_ellipsis=add_ellipsis,
             transient=transient,
-        ) 
-    
+        )
+
     def loading(
         self,
         status: str,
@@ -355,7 +367,7 @@ class CustomizedConsole(Console):
 
         Args:
             status (str): Message to display in the console.
-            spinner (str, optional): Name of spinner animation (see python -m 
+            spinner (str, optional): Name of spinner animation (see python -m
                                      rich.spinner). Defaults to "dots".
             spinner_style (StyleType, optional): Style of spinner.
                                                  Defaults to "white".
@@ -386,7 +398,7 @@ class CustomizedConsole(Console):
         Prints a blank line to the console.
         """
         self.print("")
-    
+
     def info(
             self,
             message: str | Panel | Table,
@@ -397,8 +409,8 @@ class CustomizedConsole(Console):
 
         Args:
             message (str | Panel | Table): Element to print to console.
-            show_time (bool, optional): If a timestamp should be added as a 
-                                        prefix. This only works on string 
+            show_time (bool, optional): If a timestamp should be added as a
+                                        prefix. This only works on string
                                         messages!
                                         Defaults to True.
         """
@@ -413,7 +425,7 @@ class CustomizedConsole(Console):
 
         Args:
             message (str): Message to print to console.
-            show_time (bool, optional): If a timestamp should be added as a 
+            show_time (bool, optional): If a timestamp should be added as a
                                         prefix.
                                         Defaults to True.
         """
@@ -425,7 +437,7 @@ class CustomizedConsole(Console):
 
         Args:
             message (str): Message to print to console.
-            show_time (bool, optional): If a timestamp should be added as a 
+            show_time (bool, optional): If a timestamp should be added as a
                                         prefix.
                                         Defaults to False.
         """
@@ -434,12 +446,12 @@ class CustomizedConsole(Console):
     def error(self, message: str, show_time: bool = False) -> None:
         """
         Prints red text to the console.
-        show_time (bool, optional): If a timestamp should be added as a 
-                                        prefix.
-                                        Defaults to False.
 
         Args:
             message (str): Message to print to console.
+            show_time (bool, optional): If a timestamp should be added as a
+                                        prefix.
+                                        Defaults to False.
         """
         self._print(message, show_time=show_time, style="red")
 

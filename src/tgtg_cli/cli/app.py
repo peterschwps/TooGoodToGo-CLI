@@ -43,6 +43,10 @@ def version_callback(value: bool) -> None:
 
     Args:
         value (bool): True if the --version flag was passed.
+
+    Raises:
+        typer.Exit: Exits the program after displaying the version or error
+                    message. Default way to exit a Typer application.
     """
     if not value:
         return
@@ -77,11 +81,15 @@ def main(
 ) -> None:
     """
     Entry callback that runs if the application is called without any
-    flags/options. Runs the main loop with the interactive menu.
+    flags/options. Builds the dependency-injector container and triggers the
+    initialization of the Config class and the TGTG which raise Errors if the
+    configuration isn't working.
+    Runs the main loop with the interactive menu.
 
     Args:
-        _ (Annotated[bool, typer.Option, optional): Additional --version option
-                                                    for the application.
+        _ (bool, optional): Additional --version option for the application.
+                            Handled by version_callback before the body of this
+                            function runs.
     """
     console.clear()
 
