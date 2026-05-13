@@ -75,6 +75,7 @@ uv add tgtg-cli
 
 The configuration of the CLI can be changed in the `settings.ini`. This file is generated automatically on  the first start and opened in your default editor. If you are making any changes to it you always need to restart the CLI.
 
+> [!NOTE]
 > If you ever need a fresh `settings.ini` you can simply delete or rename the file and restart the CLI.
 
 ### File Location
@@ -91,7 +92,7 @@ You can re-open the file at any time via **Settings** in the menu. This will als
 
 ### Settings Reference
 
-The file is split into five sections. All keys are required to be present, but values can be left empty when the surrounding feature is not used.
+The settings file is split into five sections. All keys are required to be present, but optional values can be left empty when the parameter is not used.
 
 #### `[ACCOUNT]`
 
@@ -170,14 +171,14 @@ NTFY_TOPIC = 1f143bad-cb9d-4528-961f-5fd61354ec9e
 CAPSOLVER_API_KEY =
 ```
 
-> [!CAUTION]
+> [!WARNING]
 > Do not remove any keys or sections. Leave any optional parameters empty if you don't need them.
 
 ## Supported credit cards
 
 In general, any credit card that works in the Too Good To Go app should also work here. Some exceptions might be credit cards that require a sms code or have a special authorization flow.
 
-> [!IMPORTANT]
+> [!CAUTION]
 > Your card details are stored on your local disk. **It is highly recommended to use a dedicated virtual card with a custom spending limit.**
 
 [**Bunq**](https://bunq.com) is the recommended provider for this setup and has been tested already. Virtual cards are free to create and you can set a custom limit per card.
@@ -205,6 +206,7 @@ Supported providers for redirect challenges:
 | Bunq      |
 | DKB       |
 
+> [!NOTE]
 > Please open an issue if you think that your provider is well-known and should be added to this list.
 
 ## Disclaimer
