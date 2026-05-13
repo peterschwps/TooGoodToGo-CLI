@@ -445,16 +445,20 @@ class OrderService:
                 headers={"tag": "white_check_mark"},
             )
 
-            # Cancel order  # TODO: nach dem Testen rausnehmen!
-            delay = randint(500, 1000) / 100
-            with console.waiting(
-                status=f"Sleeping for {delay} seconds before proceeding...",
-            ):
-                sleep(delay)
-            order_cancellation_details = self._tgtg.cancel_order(
-                self._order_details.id
-            )
-            print(f"Order cancellation details: {order_cancellation_details}")
+            # INFO: You can uncomment this block when debugging to
+            #       automatically cancel all newly created orders.
+            #
+            # delay = randint(500, 1000) / 100
+            # with console.waiting(
+            #     status=(
+            #         f"Sleeping for {delay} seconds before cancelling "
+            #         f"order..."
+            #     )):
+            #     sleep(delay)
+            # order_cancellation_details = self._tgtg.cancel_order(
+            #     order_id=self._order_details.id,
+            # )
+            # console.success(f"Order cancelled: {order_cancellation_details}")
 
             return True
 
