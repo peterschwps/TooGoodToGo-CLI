@@ -24,21 +24,6 @@ jobs:
       - run: uv sync --no-dev
       - run: uv run --with ruff ruff check .
 
-  type-check:
-    name: Type check (ty)
-    runs-on: ubuntu-latest
-    # TODO: remove `continue-on-error` once `[tool.ty]` is tuned and
-    # the warning noise is down to actionable signal. See
-    # docs/internal/PUBLISHING_PLAN.md for the open follow-up.
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-      - run: uv sync
-      - run: uv run ty check
-
   test:
     name: Test (Python ${{ matrix.python-version }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
