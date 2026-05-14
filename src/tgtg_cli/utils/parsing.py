@@ -21,7 +21,7 @@ class HTMLFormParser:
         self._form = soup.find("form", attrs={"id": form_id})
         if self._form is None:
             raise UnexpectedResponse(error_message)
-        
+
         # Other attributes
         self.error_message = error_message
 

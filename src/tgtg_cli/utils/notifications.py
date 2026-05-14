@@ -26,14 +26,14 @@ def send_webhook(
         challenge_url (str | None): Optional URL of the 3DS challenge that the
                                     user needs to open and complete.
         header (str | None): Optional header from the challengeInfoLabel if the
-                             user needs to answer additional questions during 
+                             user needs to answer additional questions during
                              the 3DS challenge.
         body (str | None): Optional body from the challengeInfoText if the user
                            needs to answer additional questions during the 3DS
                            challenge.
         actions (list[dict[str, str]] | None): Optional actions if the user
-                                               needs to answer additional 
-                                               questions during the 3DS 
+                                               needs to answer additional
+                                               questions during the 3DS
                                                challenge. If no value is set
                                                the default message to confirm
                                                a pending 3DS challenge is sent
@@ -43,7 +43,7 @@ def send_webhook(
                                exception. Defaults to 240 (4 minutes).
 
     Raises:
-        RuntimeError: If no response was received within 10 minutes after 
+        RuntimeError: If no response was received within 10 minutes after
                       sending the message.
 
     Returns:
@@ -54,7 +54,7 @@ def send_webhook(
     # End time for checking response
     endtime = round(time()) + seconds_to_wait
 
-    # Check if additional actions are provided (meaning further steps are 
+    # Check if additional actions are provided (meaning further steps are
     # required during the 3DS challenge)
     # Otherwise configure default message to confirm pending 3DS challenge
     if actions:
@@ -90,7 +90,7 @@ def send_webhook(
             # Safeguard to prevent Ntfy errors if message exceeds 4KB in size
             if len(challenge_url) > 1000:
                 challenge_url = shorten_url(challenge_url)
-               
+
             # Send message with challenge URL
             data = {
                 "topic": topic,
@@ -143,14 +143,14 @@ def send_webhook(
                 }
             ],
         }
-    
+
     # Send message with action button
     session.post(
         url="https://ntfy.sh/",
         json=data,
         timeout=30,
     )
-    
+
     # Stream response and await confirmation
     # More details: https://docs.ntfy.sh/subscribe/api/#http-stream
     answer = None
@@ -166,18 +166,18 @@ def send_webhook(
                     answer = message.get("message")
                     break
                 # Note: This check only gets triggered whenever a new message
-                #       is received. A keepalive message is sent every 45 
+                #       is received. A keepalive message is sent every 45
                 #       seconds which means that this condition might not get
                 #       triggered immediately after the end time is reached.
                 if endtime <= round(time()):
                     break
-    
+
     # Raise exception if no response received until end time
     if answer is None:
         raise RuntimeError(
             "Notification sent but no response received in time."
         )
-    
+
     # Send quick confirmation
     send_notification(
         topic=topic,
