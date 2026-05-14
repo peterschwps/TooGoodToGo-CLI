@@ -251,9 +251,13 @@ Session tokens, the random device profile, and logs live in the OS-native cache 
 
 Card details are read from `settings.ini` (see [File Location](#file-location)).
 
+### Why do I keep getting logged out?
+
+The session tokens are stored in your local cache directory (see [Where are my credentials and tokens stored?](#where-are-my-credentials-and-tokens-stored)). Cleanup tools might clear that directory, which means that you will have to log in again. Add the `TGTG-CLI/` folder to the tool's exclude list to prevent this.
+
 ### How do I reset the CLI?
 
-Select **Logout** in the menu to clear the session, or delete the config and cache directories above for a full reset. On next start, both files will be recreated.
+Select **Logout** in the menu to clear the session, or delete the config and cache directories above for a full reset. On the next start, both files will be recreated.
 
 ### Will using this tool get my account banned?
 
