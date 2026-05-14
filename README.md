@@ -5,7 +5,7 @@
 
 # TooGoodToGo-CLI
 
-**Unofficial CLI for 'Too Good To Go' to monitor and check out items as they become available.**
+**Unofficial CLI for Too Good To Go (TGTG) to monitor and check out items as they become available.**
 
 ![Demo](https://raw.githubusercontent.com/peterschwps/TooGoodToGo-CLI/main/docs/assets/demo.gif)
 
