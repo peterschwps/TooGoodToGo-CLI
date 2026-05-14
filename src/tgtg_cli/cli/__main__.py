@@ -13,7 +13,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-# TODOs:
-# TODO: in Docs vermerken --> dass Tools wie z.B. CleanMyMac den Cache und
-#       damit auch die Login Session löschen
