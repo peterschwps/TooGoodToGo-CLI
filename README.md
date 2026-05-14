@@ -9,13 +9,23 @@
 
 ![Demo](https://raw.githubusercontent.com/peterschwps/TooGoodToGo-CLI/main/docs/assets/demo.gif)
 
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Credit cards](#credit-cards)
+- [FAQ](#faq)
+- [Disclaimer](#disclaimer)
+
 ## Features
 
 - **Interactive Menu** — guided flow, easy to navigate.
 - **Account Login** — email-based passwordless login; persistent session.
 - **Monitor Items** — watch any item in your area and wait for it to become available.
 - **Mobile & Desktop Notifications** — get notified via the Ntfy app or website when monitored items become available.
-- **Automatic Checkout** — handles the full checkout flow including any 3DS challenges, completing purchases faster than any human.
+- **Automatic Checkout** — handles the full checkout flow including any 3DS challenges, completing purchases in no time.
 - **Easy Configuration** — all settings in a single file, editable in your default editor.
 
 ## Installation
@@ -71,11 +81,11 @@ uv add tgtg-cli
 6. Once logged in, choose **Monitor** and select the item you want to watch.
 
 > [!TIP]
-> For best results when using the automated checkout, a free virtual card from [Bunq](https://bunq.com) is recommended. See [Supported credit cards](#supported-credit-cards) for more details.
+> For best results when using the automated checkout, a free virtual card from [Bunq](https://bunq.com) is recommended. See [Credit cards](#credit-cards) for more details.
 
 ## Configuration
 
-The configuration of the CLI can be changed in the `settings.ini`. This file is generated automatically on  the first start and opened in your default editor. If you are making any changes to it you always need to restart the CLI.
+The configuration of the CLI can be changed in the `settings.ini`. This file is generated automatically on the first start and opened in your default editor. If you are making any changes to it, you always need to restart the CLI.
 
 > [!NOTE]
 > If you ever need a fresh `settings.ini` you can simply delete or rename the file and restart the CLI.
@@ -115,7 +125,7 @@ Feature switches to configure the behaviour of the CLI.
 | Key | Type | Description |
 | --- | --- | --- |
 | `ENABLE_LOGGING` | bool | Write logs to disk. Set to `True` or `False`. Default: `False`. This creates a log file in the cache directory. </br></br> **Note:** This is mainly for debugging purposes. It is recommended to turn off logging unless you are having issues. |
-| `ENABLE_CHECKOUT` | bool | If `True`, the CLI will attempt to complete the purchase automatically. Requires all `[PAYMENT]` fields to be filled. Default: `False`. If set to `False` the CLI will only notify the user when an item becomes available and not try to buy it. |
+| `ENABLE_CHECKOUT` | bool | If `True`, the CLI will attempt to complete the purchase automatically. Requires all `[PAYMENT]` fields to be filled. Default: `False`. If set to `False`, the CLI will only notify the user when an item becomes available and not try to buy it. |
 
 #### `[PAYMENT]`
 
@@ -135,11 +145,11 @@ Behavior of the CLI when monitoring an item.
 | Key | Type | Description |
 | --- | --- | --- |
 | `DELAY_IN_MILLISECONDS` | integer | Delay between polls in milliseconds. Default: `4500`. Please note that lower delays may trigger rate limiting. |
-| `NTFY_TOPIC` | string | Topic name for [Ntfy.sh](https://ntfy.sh) push notifications. Subscribe to the same topic in the ntfy app to receive alerts. </br> You can find the Ntfy setup guide [here](https://docs.ntfy.sh). </br></br> **Note:** Make sure you pick a unique string to prevent other users receiving your notifications. This could be a random [UUID](baff9c95-cc08-4836-bc36-59e86438a79d) or a random [password](https://1password.com/password-generator). |
+| `NTFY_TOPIC` | string | Topic name for [Ntfy.sh](https://ntfy.sh) push notifications. Subscribe to the same topic in the ntfy app to receive alerts. </br> You can find the Ntfy setup guide [here](https://docs.ntfy.sh). </br></br> **Note:** Make sure you pick a unique string to prevent other users receiving your notifications. This could be a random [UUID](https://www.uuidgenerator.net/) or a random [password](https://1password.com/password-generator). |
 
 #### `[SOLVER]`
 
-Configuration of the captcha solver via [CapSolver](https://dashboard.capsolver.com/passport/register?inviteCode=Gac0yUtJJQhN). This is only needed for edge cases if you are having trouble logging into your account. CapSolver will only be used to solve the captcha upon login and retrieving the sessin tokens.
+Configuration of the captcha solver via [CapSolver](https://dashboard.capsolver.com/passport/register?inviteCode=Gac0yUtJJQhN). This is only needed for edge cases if you are having trouble logging into your account. CapSolver will only be used to solve the captcha upon login and retrieving the session tokens.
 
 | Key | Type | Description |
 | --- | --- | --- |
@@ -175,14 +185,14 @@ CAPSOLVER_API_KEY =
 
 Do not remove any keys or sections! Leave any optional parameters empty if you don't need them.
 
-## Supported credit cards
+## Credit cards
 
-In general, **any credit card** that works in the Too Good To Go app should also work here. Some exceptions might be credit cards that require an sms code or have a special authorization flow.
+In general, **any credit card** that works in the Too Good To Go app should also work here. Some exceptions might be credit cards that require an SMS code or have a special authorization flow.
 
 > [!WARNING]
 > Your card details are stored on your local disk. **It is highly recommended to use a dedicated virtual card with a custom spending limit.**
 
-[**Bunq**](https://bunq.com) is one of the recommended providers as it provides the neccessary features and has been tested already. Opening an account is free, virtual cards can be created at no extra-cost and you can set spending limits for each card. You can delete and re-create a new card at any time.
+[**Bunq**](https://bunq.com) is one of the recommended providers as it provides the necessary features and has been tested already. Opening an account is free, virtual cards can be created at no extra cost and you can set spending limits for each card. You can delete and re-create a new card at any time.
 
 You can find more information about the different authorization flows and a list of fully supported providers down below.
 
@@ -207,6 +217,47 @@ Supported providers for **redirect** challenges:
 
 > [!NOTE]
 > Please open an issue if you think that your provider is well-known and should be added to this list.
+
+## FAQ
+
+### Do I need a credit card to use the CLI?
+
+No. Monitoring and notifications work without payment details. Set `ENABLE_CHECKOUT = False` in `settings.ini` and leave the `[PAYMENT]` fields empty. You'll receive a notification whenever a monitored item becomes available and can then check out manually in the Too Good To Go app.
+
+### My card is rejected during checkout. What's wrong?
+
+A few possible causes:
+
+- Your bank requires an SMS code or another authorization flow not supported by the CLI.
+- Your card has insufficient funds or a spending limit below the item price.
+
+Try to use [Bunq](https://bunq.com) as described in [Credit cards](#credit-cards) if possible. If you keep getting errors, open an issue.
+
+### How long am I blocked after being rate limited?
+
+Soft bans seem to last one hour. After the cooldown, the CLI works as normal — no extra action needed. To reduce the chance of being rate-limited again, keep the polling delay at `4500ms` or higher.
+
+If you don't want to wait for an hour you can change your IP, e.g. by using a proxy.
+
+### Where are my credentials and tokens stored?
+
+Session tokens, the random device profile, and logs live in the OS-native cache directory:
+
+| OS | Path |
+| --- | --- |
+| **macOS** | `~/Library/Caches/TGTG-CLI/` |
+| **Linux** | `~/.cache/TGTG-CLI/` (or `$XDG_CACHE_HOME/TGTG-CLI/`) |
+| **Windows** | `%LOCALAPPDATA%\TGTG-CLI\Cache\` |
+
+Card details are read from `settings.ini` (see [File Location](#file-location)).
+
+### How do I reset the CLI?
+
+Select **Logout** in the menu to clear the session, or delete the config and cache directories above for a full reset. On next start, both files will be recreated.
+
+### Will using this tool get my account banned?
+
+This tool may violate the Too Good To Go Terms of Service. Use at your own risk. See the [Disclaimer](#disclaimer) for details. To reduce exposure, keep the polling delay at the default (`4500ms`) or even higher.
 
 ## Disclaimer
 
