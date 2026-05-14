@@ -7,6 +7,12 @@
 
 **Unofficial CLI for 'Too Good To Go' to monitor and check out items as they become available.**
 
+![Demo](https://raw.githubusercontent.com/peterschwps/TooGoodToGo-CLI/main/docs/assets/demo.gif)
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/peterschwps/TooGoodToGo-CLI/main/docs/assets/demo.gif" alt="TGTG-CLI demo" width="800" />
+</p>
+
 ## Features
 
 - **Interactive Menu** — guided flow, easy to navigate.
@@ -180,7 +186,7 @@ In general, **any credit card** that works in the Too Good To Go app should also
 > [!WARNING]
 > Your card details are stored on your local disk. **It is highly recommended to use a dedicated virtual card with a custom spending limit.**
 
-[**Bunq**](https://bunq.com) is one of the recommended providers as it provides the neccessary features and has been tested already. The sign up is free, virtual cards can be created at no extra-cost and you can set spending limits for each card. You can delete and re-create a new card at any time.
+[**Bunq**](https://bunq.com) is one of the recommended providers as it provides the neccessary features and has been tested already. Opening an account is free, virtual cards can be created at no extra-cost and you can set spending limits for each card. You can delete and re-create a new card at any time.
 
 You can find more information about the different authorization flows and a list of fully supported providers down below.
 
