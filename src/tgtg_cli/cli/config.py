@@ -50,7 +50,7 @@ DEFAULT_SETTINGS: dict[str, dict[str, str]] = {
         "PROXY": "",
     },
     "APPLICATION": {
-        "ENABLE_LOGGING": "True",
+        "ENABLE_LOGGING": "False",
         "ENABLE_CHECKOUT": "False",
     },
     "PAYMENT": {
