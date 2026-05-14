@@ -29,17 +29,20 @@ uvx --index https://test.pypi.org/simple/ \
 not host runtime dependencies; pulling them from real PyPI is the only
 working option.
 
-### 2. Configure `[tool.ty]` and re-enable the type-check gate
+### 2. Re-add the type-check gate with `ty`
 
-`type-check` runs with `continue-on-error: true` so ty does not block
-PRs while its default strictness is unconfigured.
+The `type-check` job was removed from `.github/workflows/ci.yml` for
+the initial public release. `ty` is still listed as a dev dependency
+and will be re-introduced later, once the configuration is tuned.
+
+When re-adding:
 
 1. Add a `[tool.ty]` block in `pyproject.toml`. Scope to `src` and
    `tests`. Suppress noisy categories as needed until the existing
    findings reduce to actionable signal.
 2. Fix or `# type: ignore[...]` the remaining real findings.
-3. Remove `continue-on-error: true` from the `type-check` job in
-   `.github/workflows/ci.yml`.
+3. Re-add the `type-check` job to `.github/workflows/ci.yml` (without
+   `continue-on-error`).
 4. Add `Type check (ty)` to the required status checks in branch
    protection (Settings → Branches → `main`).
 
