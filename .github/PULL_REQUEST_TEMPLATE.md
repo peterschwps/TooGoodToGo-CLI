@@ -16,7 +16,6 @@
 - [ ] Commits follow Conventional Commits
 - [ ] Tests added or updated where useful
 - [ ] `uv run pre-commit run --all-files` passes locally
-- [ ] CHANGELOG entry added under `## [Unreleased]` (if user-visible)
 
 ## Related issues
 

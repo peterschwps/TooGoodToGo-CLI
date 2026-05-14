@@ -11,7 +11,7 @@ body:
     id: version
     attributes:
       label: Version
-      description: Output of `tgtg-cli --version` (or commit hash if running from source).
+      description: Output of `tgtg --version` (or commit hash if running from source).
       placeholder: "0.1.0"
     validations:
       required: true

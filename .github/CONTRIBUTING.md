@@ -57,7 +57,6 @@ uv run pre-commit run --all-files   # everything pre-commit checks
 
 - Keep PRs small and focused on one change.
 - Make sure CI passes before requesting review.
-- Update `CHANGELOG.md` under `## [Unreleased]` if your change is
-  user-visible (this is automated by release-please for most cases,
-  but a manual entry helps).
+- `CHANGELOG.md` is maintained automatically by release-please from
+  the commit messages — no manual changelog edits needed.
 - Squash-merge is the only allowed merge style.
