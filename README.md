@@ -7,10 +7,12 @@
 
 **Unofficial CLI for 'Too Good To Go' to monitor and check out items as they become available.**
 
+![Demo](docs/assets/demo.gif)
+
 ![Demo](https://raw.githubusercontent.com/peterschwps/TooGoodToGo-CLI/main/docs/assets/demo.gif)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/peterschwps/TooGoodToGo-CLI/main/docs/assets/demo.gif" alt="TGTG-CLI demo" width="800" />
+  <img src="https://raw.githubusercontent.com/peterschwps/TooGoodToGo-CLI/main/docs/assets/demo.gif" alt="TooGoodToGo-CLI Demo" width="800" />
 </p>
 
 ## Features
