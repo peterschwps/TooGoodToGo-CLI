@@ -94,11 +94,11 @@ def show_selection(
 
     Args:
         options (Iterable[Enum | str]): Options to show in the menu.
-        multi_selection (bool, optional): If the user can select multiple 
+        multi_selection (bool, optional): If the user can select multiple
                                           options. Defaults to False.
 
     Returns:
-        int | list[int]: Selection made by the user. Value is a single integer 
+        int | list[int]: Selection made by the user. Value is a single integer
                          if multi_selection is False or a list of integers if
                          multi_selection is True.
                          The integers represent the index of the selected

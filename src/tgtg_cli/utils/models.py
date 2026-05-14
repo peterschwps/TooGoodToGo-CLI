@@ -47,7 +47,7 @@ class SessionTokens:
             access_token_ttl_seconds=response["access_token_ttl_seconds"],
         )
 
-    
+
 @dataclass
 class ItemOverview:
     id: str

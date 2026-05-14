@@ -27,7 +27,7 @@ class Encryption:
             exponent_hex (str): Exponent of Adyen's public key.
             modulus_hex (str): Modulus of Adyen's public key.
             aes_key (bytes): Unique AES key provided by the Cryptography API.
-            iv (bytes): Unique initialization vector provided by the 
+            iv (bytes): Unique initialization vector provided by the
                         Cryptography API.
         """
         self.exponent_hex = exponent_hex
@@ -59,19 +59,19 @@ class Encryption:
 
     def _encrypt(self, payload: dict[str, Any]) -> str:
         """
-        Encrypts a payload as a JSON Web Encryption (JWE) token. This token 
+        Encrypts a payload as a JSON Web Encryption (JWE) token. This token
         contains the following base64 url-safe encoded components:
 
         1.) Header: The header gets created the first time this method is
                     called. It is then stored as an attribute to speed up the
                     process.
 
-        2.) Encrypted key: The AES key is encrypted with Adyen's public key 
+        2.) Encrypted key: The AES key is encrypted with Adyen's public key
                            using the RSA-OAEP-256 algorithm. An unique key
                            can be retrieved from the external Cryptography API.
 
-        3.) Initialization vector: An unique initialization vector can be 
-                                   retrieved from the external Cryptography 
+        3.) Initialization vector: An unique initialization vector can be
+                                   retrieved from the external Cryptography
                                    API.
 
         4.) Ciphertext: The ciphertext is encrypted using the AES-256-GCM
@@ -94,14 +94,14 @@ class Encryption:
                 "version": "1",
             }).encode()
             self.encoded_header = urlsafe_b64encode(header_bytes).decode()
-        
+
         # Create cipher if not previously done
         if self.cipher is None:
             self.cipher = Cipher(
                 algorithm=algorithms.AES(key=self.aes_key),
                 mode=modes.GCM(initialization_vector=self.iv)
             )
-        
+
         # Create encryptor
         encryptor = self.cipher.encryptor()
         encryptor.authenticate_additional_data(
@@ -161,7 +161,7 @@ class Encryption:
             str: Encrypted expiry month as a JWE token.
         """
         return self._encrypt({"expiryMonth": expiry_month})
-    
+
     def encrypt_expiry_year(self, expiry_year: int) -> str:
         """
         Encrypts the expiry year as a JWE token.
@@ -173,7 +173,7 @@ class Encryption:
             str: Encrypted expiry year as a JWE token.
         """
         return self._encrypt({"expiryYear": expiry_year})
-    
+
     def encrypt_security_code(self, security_code: str) -> str:
         """
         Encrypts the security code as a JWE token.

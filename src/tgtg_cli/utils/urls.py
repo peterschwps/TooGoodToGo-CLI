@@ -9,7 +9,7 @@ from tgtg_cli.apis.cryptography import URL
 
 def shorten_url(target_url: str) -> str:
     """
-    Encrypts a target URL and sends it to the server to shorten it. Builds the 
+    Encrypts a target URL and sends it to the server to shorten it. Builds the
     full URL to resolve the shortened URL back to the target URL by adding the
     key as a URI fragment.
     This keeps the target URL completely hidden from the server ensuring the
