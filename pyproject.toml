@@ -1,6 +1,6 @@
 [project]
 name = "TGTG-CLI"
-version = "0.1.0"
+version = "0.1.1"
 description = "Unofficial CLI for 'Too Good To Go' to monitor and check out items as they become available."
 readme = "README.md"
 requires-python = ">=3.12"
