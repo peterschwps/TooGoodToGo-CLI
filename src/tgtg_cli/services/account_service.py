@@ -66,8 +66,8 @@ class AccountService:
 
         # Check if account is not registered yet
         if (
-            "polling_id" not in login_response and
-            login_response.get("state") == "TERMS"
+            "polling_id" not in login_response
+            and login_response.get("state") == "TERMS"
         ):
             console.error("This email is not registered yet.")
             console.warning(
@@ -115,8 +115,8 @@ class AccountService:
 
         # Check if account is already registered
         if (
-            "polling_id" in login_response and
-            login_response.get("state") == "WAIT"
+            "polling_id" in login_response
+            and login_response.get("state") == "WAIT"
         ):
             console.error("This email is already registered.")
             console.warning(
@@ -177,7 +177,7 @@ class AccountService:
                 break
 
         # Finish registration
-        register_response = self._tgtg.complete_registration(
+        register_response = self._tgtg.initialize_registration(
             device_type=device_type,
             email=email,
             country_id=country_iso_code,
@@ -191,11 +191,11 @@ class AccountService:
         )
 
     def _complete_login(
-            self,
-            device_type: str,
-            email: str,
-            polling_id: str,
-        ) -> None:
+        self,
+        device_type: str,
+        email: str,
+        polling_id: str,
+    ) -> None:
         """
         Completes the login to create an active session. Stores the session
         tokens in the session file. This method can either be called after
