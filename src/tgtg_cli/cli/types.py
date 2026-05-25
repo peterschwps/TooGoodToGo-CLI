@@ -56,6 +56,7 @@ class DatadomeCookieResult(TypedDict):
 class Error(TypedDict):
     errors: list[dict[str, str]]
 
+
 class Country(TypedDict):
     iso_code: str
     name: str
@@ -127,9 +128,13 @@ SortOption = Literal[
 type ResponseStatusCode = int
 
 
-class AuthByEmailResult(TypedDict):
+class AuthByEmailLoginResult(TypedDict):
     state: str
     polling_id: str
+
+
+class AuthByEmailRegistrationResult(TypedDict):
+    state: str
 
 
 class DatadomeCaptchaResult(TypedDict):
@@ -138,6 +143,24 @@ class DatadomeCaptchaResult(TypedDict):
 
 # /auth/v5/authByRequestPin
 type AuthByRequestPinResult = SessionTokens
+
+
+# /auth/v5/signUpByEmail
+class SignUpByEmailResult(TypedDict):
+    state: str
+    polling_id: str
+
+
+# /app/v1/onStartup
+class OnStartupResult(TypedDict):
+    user: dict[str, Any]
+    app_settings: dict[str, Any]
+    user_settings: dict[str, Any]
+    orders: dict[str, Any]
+    brief_orders: dict[str, Any]
+    received_orders: dict[str, Any]
+    user_push_notification_settings: dict[str, Any]
+    features: dict[str, Any]
 
 
 # /item/v8

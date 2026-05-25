@@ -146,6 +146,9 @@ def main(
             case MenuOptions.Monitor:
                 execute_selected_method(product_service.monitor)
 
+            case MenuOptions.Register:
+                execute_selected_method(account_service.register)
+
             case MenuOptions.Settings:
                 execute_selected_method(
                     Config.open_settings_file,

@@ -10,7 +10,8 @@ from bs4 import BeautifulSoup
 from tgtg_cli.apis.base import BaseClient
 from tgtg_cli.cli.config import Config
 from tgtg_cli.cli.types import (
-    AuthByEmailResult,
+    AuthByEmailLoginResult,
+    AuthByEmailRegistrationResult,
     AuthByRequestPinResult,
     CancelOrderResult,
     CreateOrderResult,
@@ -21,12 +22,14 @@ from tgtg_cli.cli.types import (
     ItemCategory,
     ItemResult,
     ItemsResult,
+    OnStartupResult,
     OrdersActiveResult,
     OrderStatusResult,
     PaymentAdditionalAuthorizationResult,
     PaymentResult,
     PayOrderResult,
     RefreshTokenResult,
+    SignUpByEmailResult,
     SortOption,
 )
 from tgtg_cli.utils.captcha import solve_datadome
@@ -49,6 +52,7 @@ class Endpoints:
     AUTH_BY_EMAIL = TGTG_URL + "auth/v5/authByEmail"
     AUTH_BY_REQUEST_PIN = TGTG_URL + "auth/v5/authByRequestPin"
     AUTH_BY_REQUEST_POLLING_ID = TGTG_URL + "auth/v5/authByRequestPollingId"
+    SIGN_UP_BY_EMAIL = TGTG_URL + "auth/v5/signUpByEmail"
     ITEM = TGTG_URL + "item/v8/{item_id}"
     ITEMS = TGTG_URL + "item/v8"
     ON_STARTUP = TGTG_URL + "app/v1/onStartup"
@@ -226,11 +230,10 @@ class TGTG(BaseClient):
                     # clientUserAgent=<redacted>]]) because: Invalid token
                     # for: AuthTokenRequest(tokenType=ACCESS,
                     # clientIp=<redacted>, clientUserAgent=<redacted>"}]}
-                    if (
-                        error["errors"][0]["code"] == "UNAUTHORIZED" and
-                        error["errors"][0]["message"].startswith(
-                            "Could not authenticate JwtToken"
-                        )
+                    if error["errors"][0]["code"] == "UNAUTHORIZED" and error[
+                        "errors"
+                    ][0]["message"].startswith(
+                        "Could not authenticate JwtToken"
                     ):
                         self.quit_on_failed_retry = True
 
@@ -256,6 +259,14 @@ class TGTG(BaseClient):
                             return False, response
                         else:
                             return True, response
+
+                    # Handle invalid tokens
+                    # (e.g. tampered tokens or wrong format)
+                    elif (
+                        error["errors"][0]["code"] == "UNAUTHORIZED"
+                        and error["errors"][0]["message"] == "Invalid token"
+                    ):
+                        raise InvalidSession("Session tokens are invalid.")
 
                     # Other unexpected errors
                     else:
@@ -439,23 +450,26 @@ class TGTG(BaseClient):
         response = self._post(url=Endpoints.REFRESH_TOKEN, json=data)
         return response.json()
 
-    def on_startup(self) -> int:
+    def on_startup(self) -> OnStartupResult:
         """
-        Sends a request to the onStartup endpoint.
-        This method can be used to validate if the authorization token is still
-        valid. It should only be called for logged in users.
+        Sends a request to the onStartup endpoint. This can be used to retrieve
+        general data about the user, app and user settings, orders and more.
 
         Returns:
-            int: Status code of the response
+            OnStartupResult: Result of the request.
         """
         response = self._post(url=Endpoints.ON_STARTUP)
-        return response.status_code
+        return response.json()
 
     def initiate_login(
         self,
         device_type: str,
         email: str,
-    ) -> AuthByEmailResult | DatadomeCaptchaResult:
+    ) -> (
+        AuthByEmailLoginResult
+        | AuthByEmailRegistrationResult
+        | DatadomeCaptchaResult
+    ):
         """
         Initiates the login process by requesting an email verification code.
 
@@ -464,16 +478,49 @@ class TGTG(BaseClient):
             email (str): Email address of the account to log in.
 
         Returns:
-            AuthByEmailResult | DatadomeCaptchaResult: Result of the request
-                                                       containing either the
-                                                       polling_id or the url
-                                                       of the Datadome captcha.
+            AuthByEmailLoginResult |
+            AuthByEmailRegistrationResult |
+            DatadomeCaptchaResult: Result of the request containing either the
+                                   polling_id or the url of the Datadome
+                                   captcha.
         """
         data = {
             "device_type": device_type,
             "email": email,
         }
         response = self._post(url=Endpoints.AUTH_BY_EMAIL, json=data)
+        return response.json()
+
+    def initialize_registration(
+        self,
+        device_type: str,
+        email: str,
+        country_id: str,
+    ) -> SignUpByEmailResult:
+        """
+        Initiates the registration process by requesting an email verification
+        code.
+
+        Args:
+            device_type (str): Device type to use, e.g. 'ANDROID'.
+            email (str): Email address of the account to register.
+            country_id (str): ISO 3166-1 alpha-2 country code of the user.
+
+        Returns:
+            SignUpByEmailResult: Result of the request containing the session
+                                 tokens.
+        """
+        data = {
+            "email": email,
+            "name": "",
+            "device_type": device_type,
+            "newsletter_opt_in": False,
+            "push_notification_opt_in": True,
+            "country_id": country_id,
+            "has_braze_sdk": True,
+            "signup_as_charity": False,
+        }
+        response = self._post(url=Endpoints.SIGN_UP_BY_EMAIL, json=data)
         return response.json()
 
     def complete_login(
@@ -485,7 +532,7 @@ class TGTG(BaseClient):
     ) -> AuthByRequestPinResult:
         """
         Completes a pending login process by submitting the email verification
-        code. Updates all token attributes and the session headers.
+        code.
 
         Args:
             device_type (str): Device type to use for the login.

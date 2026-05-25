@@ -11,7 +11,7 @@ from tgtg_cli.cli import console
 
 
 class MenuOptions(Enum):
-    #  Register = ("Register", False)
+    Register = ("Register", False)
     Login = ("Login", False)
     Monitor = ("Monitor", True)
     Logout = ("Logout", True)
