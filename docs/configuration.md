@@ -33,7 +33,7 @@ also show you the path of the file.
 The settings file is split into five sections. All keys are required to be
 present, but optional values can be left empty when the parameter is not used.
 
-### `[ACCOUNT]`
+### `[ACCOUNT]` { data-toc-label="Account" }
 
 All settings regarding your Too Good To Go account and the geographic area to
 scan.
@@ -46,7 +46,7 @@ scan.
 | `RADIUS` | integer | Search radius in full kilometers. Example: `5`. |
 | `PROXY` | string | Optional proxy in the format `username:password@hostname:port`. Required when `CAPSOLVER_API_KEY` is set.<br><br>**Note:** Using a proxy is only recommended if you have problems bypassing Cloudflare. |
 
-### `[APPLICATION]`
+### `[APPLICATION]` { data-toc-label="Application" }
 
 Feature switches to configure the behaviour of the CLI.
 
@@ -55,7 +55,7 @@ Feature switches to configure the behaviour of the CLI.
 | `ENABLE_LOGGING` | bool | Write logs to disk. Set to `True` or `False`. Default: `False`. This creates a log file in the cache directory.<br><br>**Note:** This is mainly for debugging purposes. It is recommended to turn off logging unless you are having issues. |
 | `ENABLE_CHECKOUT` | bool | If `True`, the CLI will attempt to complete the purchase automatically. Requires all `[PAYMENT]` fields to be filled. Default: `False`. If set to `False`, the CLI will only notify the user when an item becomes available and not try to buy it. |
 
-### `[PAYMENT]`
+### `[PAYMENT]` { data-toc-label="Payment" }
 
 Card details used for automatic checkout. Only required when
 `ENABLE_CHECKOUT = True`.
@@ -67,7 +67,7 @@ Card details used for automatic checkout. Only required when
 | `CARD_EXPIRY_YEAR` | integer | Year of expiry, four digits. Example `2028`. |
 | `CARD_SECURITY_CODE` | string | CVC / CVV (3 or 4 digits). Example `034`. |
 
-### `[MONITOR]`
+### `[MONITOR]` { data-toc-label="Monitor" }
 
 Behavior of the CLI when monitoring an item.
 
@@ -76,7 +76,7 @@ Behavior of the CLI when monitoring an item.
 | `DELAY_IN_MILLISECONDS` | integer | Delay between polls in milliseconds. Default: `4500`. Please note that lower delays may trigger rate limiting. |
 | `NTFY_TOPIC` | string | Topic name for [Ntfy.sh](https://ntfy.sh) push notifications. Subscribe to the same topic in the ntfy app to receive alerts.<br>You can find the Ntfy setup guide [here](https://docs.ntfy.sh).<br><br>**Note:** Make sure you pick a unique string to prevent other users receiving your notifications. This could be a random [UUID](https://www.uuidgenerator.net/) or a random [password](https://1password.com/password-generator). |
 
-### `[SOLVER]`
+### `[SOLVER]` { data-toc-label="Solver" }
 
 Configuration of the captcha solver via
 [CapSolver](https://dashboard.capsolver.com/passport/register?inviteCode=Gac0yUtJJQhN).
