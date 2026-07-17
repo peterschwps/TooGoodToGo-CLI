@@ -1,0 +1,71 @@
+site_name: TooGoodToGo CLI
+site_url: https://peterschwps.com/docs/tgtg/
+site_description: >-
+  Unofficial command-line tool for Too Good To Go (TGTG) to monitor items and
+  automatically check them out as they become available.
+site_author: Peter Schwips
+repo_url: https://github.com/peterschwps/TooGoodToGo-CLI
+repo_name: peterschwps/TooGoodToGo-CLI
+copyright: © Peter Schwips
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/peterschwps/TooGoodToGo-CLI
+      name: TooGoodToGo-CLI on GitHub
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quick Start: quickstart.md
+  - Configuration: configuration.md
+  - Credit Cards: credit-cards.md
+  - FAQ: faq.md
+  - Disclaimer: disclaimer.md
