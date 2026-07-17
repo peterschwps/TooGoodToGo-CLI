@@ -1,0 +1,32 @@
+name: Redeploy docs
+
+# The documentation is served by a separate Railway service that clones this
+# repository at build time. A push to the docs therefore needs to trigger a
+# redeploy of that service so the live site picks up the changes.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+      - mkdocs.yml
+
+permissions: {}
+
+concurrency:
+  group: docs-redeploy
+  cancel-in-progress: true
+
+jobs:
+  redeploy:
+    name: Redeploy Railway docs service
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g @railway/cli
+      - name: Trigger redeploy
+        run: railway redeploy --service toogoodtogo-cli-docs --yes
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
