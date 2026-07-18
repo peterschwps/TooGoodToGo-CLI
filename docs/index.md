@@ -1,53 +1,56 @@
 ---
+title: "TooGoodToGo-CLI: Bot to Monitor & Auto-Checkout Magic Bags"
 description: >-
-  TooGoodToGo CLI is an unofficial command-line tool to monitor Too Good To Go
-  items and automatically check them out the moment they become available.
+  The only CLI for Too Good To Go (TGTG) that automates the full checkout: it
+  monitors magic bags, notifies you when they become available and pays
+  automatically.
 hide:
   - toc
 ---
 
-# TooGoodToGo CLI
+# TooGoodToGo-CLI
 
-**Unofficial CLI for Too Good To Go (TGTG) to monitor and check out items as
-they become available.**
+**The only CLI for Too Good To Go (TGTG) that automates the full checkout
+process.**
+
+Magic bags sell out in seconds. TooGoodToGo-CLI is your personal helper tool:
+it watches your favorite stores, sends a notification the instant an item
+is available. It can automatically reserve and pay for it (including 3DS), so
+you grab any item before it sells out. The app is free, open-source and runs on any platform.
 
 [![PyPI](https://img.shields.io/pypi/v/TGTG-CLI.svg?label=PyPI)](https://pypi.org/project/TGTG-CLI/)
 [![Python](https://img.shields.io/pypi/pyversions/TGTG-CLI.svg?label=Python)](https://pypi.org/project/TGTG-CLI/)
 [![CI](https://github.com/peterschwps/TooGoodToGo-CLI/actions/workflows/ci.yml/badge.svg)](https://github.com/peterschwps/TooGoodToGo-CLI/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/peterschwps/TooGoodToGo-CLI/blob/main/LICENSE)
 
-![Demo of the TooGoodToGo CLI in action](assets/demo.gif)
+![Demo of TooGoodToGo-CLI in action](assets/demo.gif)
 
 ## Features
 
-- **Interactive Menu** — guided flow, easy to navigate.
-- **Account Login** — email-based passwordless login; persistent session.
-- **Monitor Items** — watch any item in your area and wait for it to become
-  available.
-- **Mobile & Desktop Notifications** — get notified via the Ntfy app or
-  website when monitored items become available.
-- **Automatic Checkout** — handles the full checkout flow including any 3DS
-  challenges, completing purchases in no time.
-- **Easy Configuration** — all settings in a single file, editable in your
-  default editor.
+- **Account Login**: passwordless login and persistent sessions.
+- **Automatic Checkout**: handles the full checkout flow including any 3DS challenges.
+- **Easy Setup**: all settings in a single file, editable with any text editor or directly from the command line - no extra tools needed.
+- **Interactive Menu**: guided flow, easy to navigate.
+- **Mobile & Desktop Notifications**: get notified via Ntfy when monitored items become available.
+- **Monitor Items**: watch any item in your area and wait for it to become available.
 
 ## Get started
 
 <div class="grid cards" markdown>
 
--   __[Installation](installation.md)__
+- **[Installation](installation.md)**
 
-    Install globally with `uv` or `pipx`.
+    Install with `uv` or `pipx`.
 
--   __[Quick Start](quickstart.md)__
+- **[Quick Start](quickstart.md)**
 
     From zero to monitoring in a few steps.
 
--   __[Configuration](configuration.md)__
+- **[Configuration](configuration.md)**
 
     Every setting explained in detail.
 
--   __[FAQ](faq.md)__
+- **[FAQ](faq.md)**
 
     Common questions and troubleshooting.
 
