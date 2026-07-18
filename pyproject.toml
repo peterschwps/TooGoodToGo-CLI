@@ -43,6 +43,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/peterschwps/TooGoodToGo-CLI"
+Documentation = "https://peterschwps.com/docs/tgtg/"
 Repository = "https://github.com/peterschwps/TooGoodToGo-CLI"
 Issues = "https://github.com/peterschwps/TooGoodToGo-CLI/issues"
 Changelog = "https://github.com/peterschwps/TooGoodToGo-CLI/blob/main/CHANGELOG.md"
