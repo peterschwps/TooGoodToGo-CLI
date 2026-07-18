@@ -93,4 +93,5 @@ dev = [
 ]
 docs = [
     "mkdocs-material[imaging]>=9.6",
+    "mkdocs-llmstxt>=0.5",
 ]
