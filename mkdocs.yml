@@ -1,8 +1,9 @@
-site_name: TooGoodToGo CLI
+site_name: TooGoodToGo-CLI
 site_url: https://peterschwps.com/docs/tgtg/
 site_description: >-
-  Unofficial command-line tool for Too Good To Go (TGTG) to monitor items and
-  automatically check them out as they become available.
+  The only CLI for Too Good To Go (TGTG) that automates the full checkout: it
+  monitors magic bags, notifies you when they become available and pays
+  automatically.
 site_author: Peter Schwips
 repo_url: https://github.com/peterschwps/TooGoodToGo-CLI
 repo_name: peterschwps/TooGoodToGo-CLI

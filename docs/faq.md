@@ -1,10 +1,41 @@
 ---
 description: >-
-  Frequently asked questions about the TooGoodToGo CLI — payment, rate limits,
-  where credentials are stored, resetting and account safety.
+  Frequently asked questions about TooGoodToGo-CLI: configuration, functionality,
+  rate limits and more.
 ---
 
 # FAQ
+
+## Is TooGoodToGo-CLI a bot?
+
+Yes. TooGoodToGo-CLI is a free, open-source bot for Too Good To Go (TGTG): it
+monitors the items you choose and, when one becomes available, can automatically
+reserve and pay for it. You simply run it from the command line and stay in
+full control.
+
+## Does this work with Surprise Bags / Magic Bags?
+
+Yes. "Surprise Bag" and "Magic Bag" are two names Too Good To Go uses for the
+same thing, a bag of surplus food (which label you see depends on your region and
+store). TooGoodToGo-CLI works with any item you can see in the app.
+
+## How can I get Magic Bags before they sell out?
+
+Popular magic bags are often gone within seconds. Add the items you want and
+TooGoodToGo-CLI monitors them for you, sends a notification the moment one is
+available, and (with checkout enabled) reserves and pays automatically, so you no
+longer have to refresh the app by hand. For the best chance of reserving a magic bag, it is recommended to enable checkout.
+
+## Can I configure TooGoodToGo-CLI to only be notified when a Magic Bag is available?
+
+Yes. TooGoodToGo-CLI can send push notifications through the free
+[Ntfy](https://ntfy.sh) app or website whenever a monitored item becomes
+available, even if you leave automatic checkout turned off.
+
+## Is it free to use?
+
+Yes. TooGoodToGo-CLI is completely free and open-source (MIT licensed). You only
+pay Too Good To Go for the bags you actually buy.
 
 ## Do I need a credit card to use the CLI?
 
@@ -27,7 +58,7 @@ an issue.
 
 ## How long am I blocked after being rate limited?
 
-Soft bans seem to last one hour. After the cooldown, the CLI works as normal —
+Soft bans seem to last one hour. After the cooldown, the CLI works as normal with
 no extra action needed. To reduce the chance of being rate-limited again, keep
 the polling delay at `4500ms` or higher.
 
