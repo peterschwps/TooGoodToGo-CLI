@@ -1,7 +1,7 @@
 ---
 description: >-
-  Full reference for the TooGoodToGo CLI settings.ini — account, application,
-  payment, monitor and solver options, with an annotated example.
+  Full reference for TooGoodToGo-CLI's settings.ini: account, application,
+  payment, monitor and solver options.
 ---
 
 # Configuration

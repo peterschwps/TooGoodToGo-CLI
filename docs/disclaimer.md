@@ -1,6 +1,6 @@
 ---
 description: >-
-  Legal disclaimer for the TooGoodToGo CLI — an unofficial, independent tool
+  Legal disclaimer for TooGoodToGo-CLI, an unofficial, independent tool
   not affiliated with Too Good To Go ApS.
 ---
 

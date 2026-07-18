@@ -1,6 +1,6 @@
 ---
 description: >-
-  How to install the TooGoodToGo CLI globally with uv or pipx, or inside a
+  How to install the TooGoodToGo-CLI globally with uv or pipx, or inside a
   virtual environment with pip.
 ---
 

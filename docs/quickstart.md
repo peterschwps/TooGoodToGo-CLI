@@ -1,7 +1,6 @@
 ---
 description: >-
-  Get the TooGoodToGo CLI up and running — start the app, fill in your
-  settings, log in and begin monitoring items.
+  Get TooGoodToGo-CLI up and running: configure the app, log in and begin reserving items.
 ---
 
 # Quick Start

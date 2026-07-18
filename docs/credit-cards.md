@@ -1,6 +1,6 @@
 ---
 description: >-
-  Which credit cards work with the TooGoodToGo CLI, the supported 3DS
+  Which credit cards work with the TooGoodToGo-CLI, the supported 3DS
   authorization flows and recommended virtual-card providers.
 ---
 
