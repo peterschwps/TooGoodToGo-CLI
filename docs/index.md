@@ -2,6 +2,8 @@
 description: >-
   TooGoodToGo CLI is an unofficial command-line tool to monitor Too Good To Go
   items and automatically check them out the moment they become available.
+hide:
+  - toc
 ---
 
 # TooGoodToGo CLI
