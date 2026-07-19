@@ -314,12 +314,14 @@ class ProductService:
             # Print result table to console
             table = Table(box=box.DOUBLE_EDGE, show_lines=True)
             table.add_column("#", justify="center")
+            table.add_column("Item ID", justify="center")
             table.add_column("Name", justify="center")
             table.add_column("Price", justify="center")
             table.add_column("Sold Out", justify="center")
             for num, item in enumerate(items):
                 row_data = [
                     str(num + 1),
+                    item.id,
                     item.name,
                     f"{item.currency_code} {item.price:.2f}",
                     "X" if item.items_available == 0 else "",
