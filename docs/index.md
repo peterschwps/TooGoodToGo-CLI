@@ -1,5 +1,4 @@
 ---
-title: "TooGoodToGo-CLI: Bot to Monitor & Auto-Checkout Magic Bags"
 description: >-
   The only CLI for Too Good To Go (TGTG) that automates the full checkout: it
   monitors magic bags, notifies you when they become available and pays

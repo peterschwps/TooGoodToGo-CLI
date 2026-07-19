@@ -1,0 +1,124 @@
+/* Restyle of the Material theme: light only, black header, neutral zinc body,
+   Geist typography, flat bordered surfaces. */
+
+/* ---- Typography ---- */
+:root {
+  --md-text-font: "Geist";
+  --md-code-font: "Geist Mono";
+}
+
+/* ---- Colors (zinc, light only) ---- */
+[data-md-color-scheme="default"] {
+  --md-default-fg-color: hsla(240, 10%, 4%, 1);        /* zinc-950 */
+  --md-default-fg-color--light: hsla(240, 4%, 46%, 1); /* zinc-500 */
+  --md-default-fg-color--lighter: hsla(240, 5%, 65%, 1);
+  --md-default-fg-color--lightest: hsla(240, 6%, 90%, 1); /* borders */
+  --md-default-bg-color: #ffffff;
+
+  --md-accent-fg-color: hsla(240, 6%, 10%, 1);
+  --md-typeset-a-color: hsla(240, 6%, 10%, 1);
+
+  --md-code-fg-color: hsla(240, 6%, 10%, 1);
+  --md-code-bg-color: hsla(240, 5%, 96%, 1); /* zinc-100 */
+}
+
+/* ---- Header + drawer: flat, pure black ---- */
+/* Set both explicitly so the header and the mobile drawer share the exact same
+   black (Material applies its own near-black to each separately). */
+[data-md-color-primary="black"] .md-header,
+[data-md-color-primary="black"] .md-nav--primary .md-nav__title[for="__drawer"],
+[data-md-color-primary="black"] .md-nav__source {
+  background-color: #000 !important;
+}
+.md-header,
+.md-header--shadow {
+  box-shadow: none;
+}
+
+/* ---- Footer: hidden (copyright, generator notice, social) ---- */
+.md-footer {
+  display: none;
+}
+
+/* ---- Headings ---- */
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--md-default-fg-color);
+}
+.md-typeset h2,
+.md-typeset h3 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+/* ---- Code: rounded, bordered ---- */
+.md-typeset code {
+  border-radius: 6px;
+  padding: 0.12em 0.4em;
+  border: 1px solid var(--md-default-fg-color--lightest);
+}
+.md-typeset pre > code {
+  padding: 0.8em 1em;
+  border-radius: 10px;
+}
+
+/* ---- Search ---- */
+.md-search__form {
+  border-radius: 8px;
+}
+
+/* ---- Tables ---- */
+.md-typeset table:not([class]) {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: none;
+}
+.md-typeset table:not([class]) th {
+  background: var(--md-code-bg-color);
+  font-weight: 600;
+}
+
+/* ---- Admonitions / details: flat cards ---- */
+.md-typeset .admonition,
+.md-typeset details {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+/* ---- Buttons ---- */
+.md-typeset .md-button {
+  border-radius: 8px;
+}
+
+/* ---- Active nav item ---- */
+.md-nav__link--active {
+  font-weight: 600;
+}
+
+/* ---- "Get started" grid cards: shadcn card look ---- */
+.md-typeset .grid.cards > ul > li {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 12px;
+  box-shadow: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-default-fg-color--lighter);
+  background-color: var(--md-code-bg-color);
+}
+
+/* ---- Links: monochrome, underlined in prose ---- */
+.md-typeset a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-color: var(--md-default-fg-color--lighter);
+}
+.md-typeset a:hover {
+  text-decoration-color: currentColor;
+}
+.md-typeset a:has(> img) {
+  text-decoration: none;
+}
