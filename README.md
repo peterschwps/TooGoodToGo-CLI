@@ -83,6 +83,16 @@ uv add tgtg-cli
 > [!TIP]
 > For best results when using the automated checkout, a free virtual card from [Bunq](https://bunq.com) is recommended. See [Credit cards](#credit-cards) for more details.
 
+## Local Development
+For *local development* (running your working copy, not a published release), from the repo root:
+
+```bash
+uv sync
+uv run tgtg
+```
+
+`uv sync` installs all dependencies from `uv.lock` into a project-local venv, and uv run tgtg runs the installed console-script entry point (`tgtg_cli.cli.__main__:main`), which runs the package properly as `tgtg_cli.cli` rather than as a loose script — so the `sys.path` shadowing issue never occurs.
+
 ## Configuration
 
 The configuration of the CLI can be changed in the `settings.ini`. This file is generated automatically on the first start and opened in your default editor. If you are making any changes to it, you always need to restart the CLI.
