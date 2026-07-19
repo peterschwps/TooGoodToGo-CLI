@@ -55,11 +55,6 @@ you grab any item before it sells out. The app is free, open-source and runs on 
 
 </div>
 
-!!! tip
-    For best results when using the automated checkout, a free virtual card
-    from [Bunq](https://bunq.com) is recommended. See
-    [Credit Cards](credit-cards.md) for more details.
-
 !!! warning
     This project is an unofficial, independent third-party tool and is **not
     affiliated with Too Good To Go**. Use of this tool may violate the Too
