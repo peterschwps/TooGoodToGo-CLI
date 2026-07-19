@@ -23,12 +23,18 @@
 }
 
 /* ---- Header + drawer: flat, pure black ---- */
-/* Set both explicitly so the header and the mobile drawer share the exact same
-   black (Material applies its own near-black to each separately). */
-[data-md-color-primary="black"] .md-header,
-[data-md-color-primary="black"] .md-nav--primary .md-nav__title[for="__drawer"],
-[data-md-color-primary="black"] .md-nav__source {
+/* Header is black at every width. */
+[data-md-color-primary="black"] .md-header {
   background-color: #000 !important;
+}
+/* Inside the mobile drawer only, the title bar and the repo-info bar get the
+   same pure black as the header. Scoped to Material's drawer breakpoint so the
+   site title shown in the desktop sidebar keeps its normal (unstyled) look. */
+@media screen and (max-width: 76.2344em) {
+  [data-md-color-primary="black"] .md-nav--primary .md-nav__title[for="__drawer"],
+  [data-md-color-primary="black"] .md-nav__source {
+    background-color: #000 !important;
+  }
 }
 .md-header,
 .md-header--shadow {
