@@ -26,7 +26,11 @@ jobs:
         with:
           node-version: 20
       - run: npm install -g @railway/cli
-      - name: Trigger redeploy
-        run: railway redeploy --service "${{ vars.RAILWAY_DOCS_SERVICE }}" --yes
+      - name: Bust docs clone cache and redeploy
+        run: |
+          railway variable set "DOCS_SHA=${GITHUB_SHA}" \
+            --service "${{ vars.RAILWAY_DOCS_SERVICE }}" \
+            --skip-deploys
+          railway redeploy --service "${{ vars.RAILWAY_DOCS_SERVICE }}" --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
