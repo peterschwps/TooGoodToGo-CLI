@@ -46,8 +46,7 @@ Other options (pip, virtual environments) are covered in the [Installation guide
    tgtg
    ```
 
-   > [!NOTE]
-   > You can also start the CLI with `tgtg-cli`, `toogoodtogo` and `toogoodtogo-cli`.
+    > You can also start the CLI with `tgtg-cli`, `toogoodtogo` and `toogoodtogo-cli`.
 
 2. Select **Settings** from the menu to open the settings file in your default editor.
 3. Fill in the settings as described in the [Configuration guide](https://peterschwps.com/docs/tgtg/configuration/), then restart the CLI.
