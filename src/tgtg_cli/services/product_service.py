@@ -1,5 +1,5 @@
 import string
-from datetime import datetime
+from datetime import datetime, time, timedelta
 from time import sleep
 from typing import Any, cast, get_args
 
@@ -266,6 +266,11 @@ class ProductService:
         latitude = self._config.settings.account.latitude
         longitude = self._config.settings.account.longitude
         radius = self._config.settings.account.radius
+        checkout_enabled = self._config.settings.application.enable_checkout
+        delay = self._config.settings.monitor.delay_in_milliseconds
+        start_time = self._config.settings.monitor.start_time
+        end_time = self._config.settings.monitor.end_time
+        use_time_frame = start_time is not None and end_time is not None
 
         # Start filter configuration and item selection if no item is provided
         # (meaning it is the first time running the method)
@@ -344,40 +349,96 @@ class ProductService:
                 selected_item = items[selection - 1]
                 break
 
+        # Inner function to check if the current time is within the time frame
+        def is_within_time_frame() -> bool:
+            """
+            Checks if the current time is within the time frame.
+
+            Returns:
+                bool: True if the current time is within the time frame,
+                      otherwise False.
+            """
+            if not start_time or not end_time:
+                return True
+            current_time = datetime.now().time()
+            if start_time <= end_time:
+                return start_time <= current_time <= end_time
+            return start_time <= current_time or current_time <= end_time
+
         # Inner function for Rich's live display
-        def get_monitoring_message() -> str:
+        def get_monitoring_message(is_active: bool) -> str:
             """
             Provides the status message to be shown while monitoring an item.
+
+            Args:
+                is_active (bool): False if a monitoring time frame is used and
+                                  the current time is outside of the active
+                                  time frame, otherwise True.
 
             Returns:
                 str: Status message to be shown in the console.
             """
             item = selected_item.name
-            delay = self._config.settings.monitor.delay_in_milliseconds
+            if is_active:
+                return (
+                    f"Monitoring '{item}' to be back in stock.\n"
+                    f"➤ Delay: {delay} ms\n"
+                    f"➤ Last update: {datetime.now().strftime('%H:%M:%S')}"
+                )
+            wake_up_time = cast(time, start_time)  # only for type checking
             return (
-                f"Monitoring '{item}' to be back in stock...\n"
-                f"➤ Delay: {delay} ms\n"
-                f"➤ Last update: {datetime.now().strftime('%H:%M:%S')}"
+                f"Sleeping until {wake_up_time.strftime('%H:%M:%S')} "
+                f"before starting the monitor."
             )
+
+        # Check time frame
+        is_active = is_within_time_frame()
 
         # Loop until item is available
         console.clear()
-        with console.loading(status=get_monitoring_message()) as status:
+        status_message = get_monitoring_message(is_active)
+        with console.loading(status=status_message) as status:
             while True:
-                items_available = self._get_item_availability(
-                    latitude=latitude,
-                    longitude=longitude,
-                    item_id=selected_item.id,
-                )
-                if items_available > 0:
-                    break
-                status.update(get_monitoring_message())
-                sleep(
-                    self._config.settings.monitor.delay_in_milliseconds / 1000
-                )
+                # Check time if time frame is used
+                if use_time_frame:
+                    is_active = is_within_time_frame()
+
+                # Check if item is available
+                if is_active:
+                    items_available = self._get_item_availability(
+                        latitude=latitude,
+                        longitude=longitude,
+                        item_id=selected_item.id,
+                    )
+                    if items_available > 0:
+                        break
+
+                # Update status message and sleep
+                status.update(get_monitoring_message(is_active))
+                if is_active:
+                    sleep(delay / 1000)
+                else:
+                    current_time = datetime.now()
+
+                    # Create datetime object with current date
+                    start_dt = datetime.combine(
+                        date=current_time.date(),
+                        time=cast(time, start_time),
+                    )
+
+                    # Add one day if current time is past the start time
+                    # Example: Start time is 21:00:00 and end time is 22:00:00.
+                    #          Current time is 23:00:00. Then the monitor needs
+                    #          to sleep until 21:00:00 of the next day.
+                    if start_dt <= current_time:
+                        start_dt += timedelta(days=1)
+
+                    # Calculate sleep time
+                    sleep_time = (start_dt - current_time).total_seconds()
+                    sleep(sleep_time)
 
         # Stop if checkout is disabled
-        if not self._config.settings.application.enable_checkout:
+        if not checkout_enabled:
             send_notification(
                 topic=self._config.settings.monitor.ntfy_topic,
                 title="Item available!",

@@ -3,7 +3,7 @@ import contextlib
 import json
 import sys
 import webbrowser
-from datetime import datetime
+from datetime import datetime, time
 from functools import cached_property
 from pathlib import Path
 from time import sleep
@@ -61,6 +61,8 @@ DEFAULT_SETTINGS: dict[str, dict[str, str]] = {
     },
     "MONITOR": {
         "DELAY_IN_MILLISECONDS": "4500",
+        "START_TIME": "",
+        "END_TIME": "",
         "NTFY_TOPIC": "",
     },
     "SOLVER": {
@@ -372,6 +374,8 @@ class PaymentSettings(BaseModel):
 
 class MonitorSettings(BaseModel):
     delay_in_milliseconds: int = Field(alias="DELAY_IN_MILLISECONDS", gt=0)
+    start_time: time | None = Field(alias="START_TIME")
+    end_time: time | None = Field(alias="END_TIME")
     ntfy_topic: str = Field(alias="NTFY_TOPIC", min_length=1)
 
     model_config = ConfigDict(populate_by_name=True)
@@ -403,6 +407,39 @@ class MonitorSettings(BaseModel):
                 sleep(4)
                 console.clear()
         return value
+
+    @field_validator("start_time", "end_time", mode="before")
+    @classmethod
+    def _convert_time_to_none_if_empty(cls, value: object) -> object:
+        """
+        Converts empty time strings to None or keeps the value unchanged.
+
+        Args:
+            value (object): Time string from the settings file.
+
+        Returns:
+            object: Converted time value or None if the value was empty.
+        """
+        return _convert_empty_string_to_none(value)
+
+    @model_validator(mode="after")
+    def _validate_time_frame(self) -> Self:
+        """
+        Validates the time frame. Ensures that start and end time are both set
+        or both empty.
+
+        Raises:
+            SettingsError: If only one of the two times is configured.
+
+        Returns:
+            Self: Validated monitor settings.
+        """
+        if (self.start_time is None) != (self.end_time is None):
+            raise SettingsError(
+                "Invalid monitor configuration. "
+                "START_TIME and END_TIME must both be set or both be empty."
+            )
+        return self
 
 
 class SolverSettings(BaseModel):
@@ -633,6 +670,11 @@ class Config:
                 elif error_type == "payment_card_number_luhn":
                     console.error(
                         f"- {path}: Card number has an invalid checksum. "
+                    )
+                elif error_type == "time_parsing":
+                    console.error(
+                        f"- {path}: Value must be a valid time in the format "
+                        f"HH:MM:SS using the 24-hour clock system."
                     )
                 else:
                     console.error(f"- {path}: {error['msg']}.")
