@@ -425,7 +425,7 @@ class ProductService:
                         date=current_time.date(),
                         time=cast(time, start_time),
                     )
-                    
+
                     # Add one day if current time is past the start time
                     # Example: Start time is 21:00:00 and end time is 22:00:00.
                     #          Current time is 23:00:00. Then the monitor needs
