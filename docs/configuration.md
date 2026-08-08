@@ -74,6 +74,8 @@ Behavior of the CLI when monitoring an item.
 | Key | Type | Description |
 | --- | --- | --- |
 | `DELAY_IN_MILLISECONDS` | integer | Delay between polls in milliseconds. Default: `4500`. Please note that lower delays may trigger rate limiting. |
+| `START_TIME` | time | Optional time to start the monitoring process. This time uses the 24-hour clock system ('military time') with the format HH:MM:SS. A valid time would be: 22:05:00. This time corresponds to 11:05 pm. A start time can only be used in combination with an end time! |
+| `END_TIME` | time | Optional time to stop the monitoring process. This time uses the 24-hour clock system ('military time') with the format HH:MM:SS. A valid time would be: 05:10:00. This time corresponds to 05:10 am. An end time can only be used in combination with a start time! After stopping the monitoring process the CLI will wait until the next start time and automatically start monitoring again. |
 | `NTFY_TOPIC` | string | Topic name for [Ntfy.sh](https://ntfy.sh) push notifications. Subscribe to the same topic in the ntfy app to receive alerts.<br>You can find the Ntfy setup guide [here](https://docs.ntfy.sh).<br><br>**Note:** Make sure you pick a unique string to prevent other users receiving your notifications. This could be a random [UUID](https://www.uuidgenerator.net/) or a random [password](https://1password.com/password-generator). |
 
 ### `[SOLVER]` { data-toc-label="Solver" }
@@ -110,6 +112,8 @@ CARD_SECURITY_CODE = 034
 
 [MONITOR]
 DELAY_IN_MILLISECONDS = 4500
+START_TIME = 22:05:00
+END_TIME = 05:10:00
 NTFY_TOPIC = your-unique-topic-string
 
 [SOLVER]
