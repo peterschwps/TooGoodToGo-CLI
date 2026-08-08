@@ -2,6 +2,11 @@
 
 ## [0.1.3](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.2...v0.1.3) (2026-08-08)
 
+### Migration
+Existing `settings.ini` files keep working. To use the new monitoring
+window, add the `START_TIME` / `END_TIME` keys under `[MONITOR]`
+(or set both to `HH:MM:SS`). See the [configuration docs](https://peterschwps.com/docs/tgtg/configuration/).
+
 
 ### Features
 
