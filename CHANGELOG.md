@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.3](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.2...v0.1.3) (2026-08-08)
+
+### Migration
+Existing `settings.ini` files keep working. To use the new monitoring
+window, add the `START_TIME` / `END_TIME` keys under `[MONITOR]`
+(or set both to `HH:MM:SS`). See the [configuration docs](https://peterschwps.com/docs/tgtg/configuration/).
+
+
+### Features
+
+* add monitor times ([#57](https://github.com/peterschwps/TooGoodToGo-CLI/issues/57)) ([34840c4](https://github.com/peterschwps/TooGoodToGo-CLI/commit/34840c4b9183a400a7e9588ee03d0ce3f9213815))
+
+
+### Bug Fixes
+
+* **docs:** use full-bleed favicon without rounded corners ([12d61a2](https://github.com/peterschwps/TooGoodToGo-CLI/commit/12d61a21ea40e0d1d3fe61054b8ee75fbfe03307))
+* fixed nested callout ([b46b808](https://github.com/peterschwps/TooGoodToGo-CLI/commit/b46b808397d57d44a8310b2efd7046c1e1a9abfe))
+
 ## [0.1.2](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.1...v0.1.2) (2026-07-19)
 
 
