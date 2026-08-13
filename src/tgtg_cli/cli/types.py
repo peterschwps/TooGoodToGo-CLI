@@ -124,6 +124,16 @@ SortOption = Literal[
     "RATING",
 ]
 
+QuickFilter = Literal[
+    "MEALS",
+    "BREAD_PASTRIES",
+    "GROCERIES",
+    "FLOWERS",
+    "PET_FOOD",
+    "VEGETARIAN",
+    "VEGAN",
+]
+
 # /auth/v5/authByEmail
 type ResponseStatusCode = int
 
@@ -163,7 +173,7 @@ class OnStartupResult(TypedDict):
     features: dict[str, Any]
 
 
-# /item/v8
+# /discover/v1/
 class AverageOverallRating(TypedDict):
     average_overall_rating: float
     rating_count: int
@@ -242,12 +252,32 @@ class Item(TypedDict):
     item_tags: list[ItemTag]
 
 
-class ItemsResult(TypedDict):
-    items: list[Item]
-    items_expanded_radius: list[Item]
+class Bucket(TypedDict):
+    bucket_type: str
+    display_type: str
+    title: NotRequired[str]
+    items: NotRequired[list[Item]]
 
 
-# /item/v8/{item_id}
+class DiscoverResult(TypedDict):
+    item_availability_status: str
+    buckets: list[Bucket]
+
+
+# /item/v9/favorites
+class Paging(TypedDict):
+    page: int
+    size: int
+    total_elements: int
+    total_pages: int
+
+
+class FavoritesResult(TypedDict):
+    favourite_items: list[Item]
+    paging: Paging
+
+
+# /item/v9/{item_id}
 class IngredientLabel(TypedDict):
     label_name: str
     probability_percentage: float
