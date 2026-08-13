@@ -17,11 +17,10 @@ from tgtg_cli.cli.types import (
     CreateOrderResult,
     DatadomeCaptchaResult,
     DatadomeCookieResult,
-    DietCategory,
+    DiscoverResult,
     Error,
-    ItemCategory,
+    FavoritesResult,
     ItemResult,
-    ItemsResult,
     OnStartupResult,
     OrdersActiveResult,
     OrderStatusResult,
@@ -30,7 +29,6 @@ from tgtg_cli.cli.types import (
     PayOrderResult,
     RefreshTokenResult,
     SignUpByEmailResult,
-    SortOption,
 )
 from tgtg_cli.utils.captcha import solve_datadome
 from tgtg_cli.utils.exceptions import (
@@ -53,8 +51,9 @@ class Endpoints:
     AUTH_BY_REQUEST_PIN = TGTG_URL + "auth/v5/authByRequestPin"
     AUTH_BY_REQUEST_POLLING_ID = TGTG_URL + "auth/v5/authByRequestPollingId"
     SIGN_UP_BY_EMAIL = TGTG_URL + "auth/v5/signUpByEmail"
-    ITEM = TGTG_URL + "item/v8/{item_id}"
-    ITEMS = TGTG_URL + "item/v8"
+    DISCOVER = TGTG_URL + "discover/v1/"
+    FAVORITES = TGTG_URL + "item/v9/favorites"
+    ITEM = TGTG_URL + "item/v9/{item_id}"
     ON_STARTUP = TGTG_URL + "app/v1/onStartup"
     ORDER_CREATE = TGTG_URL + "order/v8/create/{item_id}"
     ORDER_CANCEL = TGTG_URL + "order/v8/{order_id}/cancel"
@@ -581,110 +580,113 @@ class TGTG(BaseClient):
         )
         return response.json()
 
-    def get_items(
+    def discover(
         self,
         latitude: float,
         longitude: float,
         radius: int,
-        page_size: int = 20,
-        page: int = 1,
-        discover: bool = False,
-        favorites_only: bool = False,
-        item_categories: list[ItemCategory] | None = None,
-        diet_categories: list[DietCategory] | None = None,
-        pickup_intervals: list | None = None,
-        search_phrase: str | None = None,
-        with_stock_only: bool = False,
-        hidden_only: bool = False,
-        sort_option: SortOption = "RELEVANCE",
-        expand_radius_if_not_enough_items: bool = False,
-    ) -> ItemsResult:
+        filters: list[str] | None = None,
+    ) -> DiscoverResult:
         """
-        Retrieves items for within a given radius from a given location. Allows
-        configuration of various filters and sorting options.
+        Retrieves the discover feed for a given location. The response is a
+        list of typed buckets (item lists, quick filters, headers, actions)
+        instead of a flat item list.
 
         Args:
             latitude (float): Latitude used as search origin.
             longitude (float): Longitude used as search origin.
             radius (int): Search radius in kilometers.
-            page_size (int, optional): Number of items per page. Do NOT change
-                                       this value. As of now it doesn't seems
-                                       to work and will only lead to duplicates
-                                       or missing items in the search results.
-                                       Defaults to 20.
-            page (int, optional): Page number to request. Defaults to 1.
-            discover (bool, optional): If discover mode should be enabled.
-                                       Defaults to False.
-            favorites_only (bool, optional): If only favorites should be
-                                             returned.
-                                             Defaults to False.
-            item_categories (list[ItemCategory] | None, optional): Specific
-                                                                   item
-                                                                   categories
-                                                                   to filter
-                                                                   for.
-                                                                   Defaults to
-                                                                   None.
-            diet_categories (list[DietCategory] | None, optional): Specific
-                                                                   diet
-                                                                   categories
-                                                                   to filter
-                                                                   for.
-                                                                   Defaults to
-                                                                   None.
-            pickup_intervals (list | None, optional): Specific pickup intervals
-                                                      to filter for.
-                                                      Defaults to None.
-            search_phrase (str | None, optional): Search query to use.
+            filters (list[str] | None, optional): Quick-filter ids to apply.
                                                   Defaults to None.
-            with_stock_only (bool, optional): If only in-stock items should be
-                                              returned.
-                                              Defaults to False.
-            hidden_only (bool, optional): If only hidden items should be
-                                          returned.
-                                          Defaults to False.
-            sort_option (SortOption, optional): Sort mode for the results.
-                                                Defaults to "RELEVANCE".
-            expand_radius_if_not_enough_items (bool, optional): If the radius
-                                                                may be expanded
-                                                                by the AP if no
-                                                                items were
-                                                                found.
-                                                                Defaults to
-                                                                False.
 
         Returns:
-            ItemsResult: Paginated item search result.
+            DiscoverResult: Bucketed discover feed.
         """
-        item_categories = [] if item_categories is None else item_categories
-        diet_categories = [] if diet_categories is None else diet_categories
         data = {
             "origin": {
                 "latitude": latitude,
                 "longitude": longitude,
             },
             "radius": radius,
-            "page_size": page_size,
-            "page": page,
-            "discover": discover,
-            "favorites_only": favorites_only,
-            "item_categories": item_categories,
-            "diet_categories": diet_categories,
-            "with_stock_only": with_stock_only,
-            "hidden_only": hidden_only,
-            "sort_option": sort_option,
-            "expand_radius_if_not_enough_items": (
-                expand_radius_if_not_enough_items
-            ),
+            "supported_buckets": [
+                {
+                    "type": "ACTION",
+                    "display_types": [
+                        "RATE_ORDER",
+                        "MANUFACTURER",
+                        "STORE_REFERRAL",
+                        "DELIVERY_TAB",
+                        "LOYALTY_CARD_BANNER",
+                        "RECIPE_GENERATOR",
+                    ],
+                },
+                {
+                    "type": "HEADER",
+                    "display_types": [
+                        "SOLD_OUT",
+                        "ALMOST_SOLD_OUT",
+                        "NOTHING_NEARBY",
+                        "NOT_LIVE_HERE",
+                        "FILTERS_NO_RESULT",
+                    ],
+                },
+                {
+                    "type": "ITEM",
+                    "display_types": [
+                        "FLASH_SALES",
+                        "CATEGORY",
+                        "CLASSIC",
+                        "FAVORITES",
+                        "RECOMMENDATIONS",
+                        "MANUFACTURER",
+                        "DELIVERY_TAB",
+                    ],
+                },
+                {
+                    "type": "FILTER",
+                    "display_types": ["QUICK_FILTERS"]
+                },
+            ],
+            "experimental_group": "DEFAULT",
+            "debug_mode": False,
+            "is_gps": False,
+            "origin_updated": False,
+            "filters": filters or [],
+            "crm_campaign": {},
         }
+        response = self._post(url=Endpoints.DISCOVER, json=data)
+        return response.json()
 
-        # Add optional arguments if provided
-        if pickup_intervals:
-            data["pickup_intervals"] = pickup_intervals
-        if search_phrase:
-            data["search_phrase"] = search_phrase
+    def get_favorites(
+        self,
+        latitude: float,
+        longitude: float,
+        page: int = 0,
+        size: int = 25,
+    ) -> FavoritesResult:
+        """
+        Retrieves the user's favorite items as a paged list.
 
-        response = self._post(url=Endpoints.ITEMS, json=data)
+        Args:
+            latitude (float): Latitude used as search origin.
+            longitude (float): Longitude used as search origin.
+            page (int, optional): Zero-based page number. Defaults to 0.
+            size (int, optional): Number of items per page. Defaults to 25.
+
+        Returns:
+            FavoritesResult: Paged list of favorite items.
+        """
+        data = {
+            "origin": {
+                "latitude": latitude,
+                "longitude": longitude,
+            },
+            "paging": {
+                "page": page,
+                "size": size,
+            },
+        }
+        response = self._post(url=Endpoints.FAVORITES, json=data)
         return response.json()
 
     def create_order(self, item_id: str, count: int = 1) -> CreateOrderResult:

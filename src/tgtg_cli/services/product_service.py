@@ -1,7 +1,7 @@
 import string
 from datetime import datetime, time, timedelta
 from time import sleep
-from typing import Any, cast, get_args
+from typing import Any, cast
 
 from rich import box
 from rich.table import Table
@@ -9,8 +9,7 @@ from rich.table import Table
 from tgtg_cli.apis.tgtg import TGTG
 from tgtg_cli.cli import console
 from tgtg_cli.cli.config import Config
-from tgtg_cli.cli.menu import show_selection
-from tgtg_cli.cli.types import DietCategory, ItemCategory, SortOption
+from tgtg_cli.cli.types import Item
 from tgtg_cli.services.order_service import OrderService
 from tgtg_cli.utils.exceptions import SettingsError
 from tgtg_cli.utils.models import ItemOverview
@@ -53,18 +52,13 @@ class ProductService:
         longitude: float,
         radius: int,
         favorites_only: bool = False,
-        item_categories: list[ItemCategory] | None = None,
-        diet_categories: list[DietCategory] | None = None,
         search_phrase: str | None = None,
         sold_out_only: bool = False,
         with_stock_only: bool = False,
-        hidden_only: bool = False,
-        sort_option: SortOption = "RELEVANCE",
     ) -> list[ItemOverview]:
         """
-        Retrieves all items within a given radius from a given location. Allows
-        configuration of various filters and sorting options.
-        Iterates over all result pages and combines the items from each page.
+        Retrieves items within a given radius from a given location. Allows
+        filtering by favorites, search phrase, sold-out status and stock.
 
         Args:
             latitude (float): Latitude used as search origin.
@@ -73,21 +67,8 @@ class ProductService:
             favorites_only (bool, optional): If only favorites should be
                                              returned.
                                              Defaults to False.
-            item_categories (list[ItemCategory] | None, optional): Specific
-                                                                   item
-                                                                   categories
-                                                                   to filter
-                                                                   for.
-                                                                   Defaults to
-                                                                   None.
-            diet_categories (list[DietCategory] | None, optional): Specific
-                                                                   diet
-                                                                   categories
-                                                                   to filter
-                                                                   for.
-                                                                   Defaults to
-                                                                   None.
-            search_phrase (str | None, optional): Search query to use.
+            search_phrase (str | None, optional): Substring the display name
+                                                  must contain.
                                                   Defaults to None.
             sold_out_only (bool, optional): If only sold-out items should be
                                             returned. This can be helpful when
@@ -96,69 +77,99 @@ class ProductService:
             with_stock_only (bool, optional): If only in-stock items should be
                                               returned.
                                               Defaults to False.
-            hidden_only (bool, optional): If only hidden items should be
-                                          returned.
-                                          Defaults to False.
-            sort_option (SortOption, optional): Sort mode for the results.
-                                                Defaults to "RELEVANCE".
 
         Returns:
             list[ItemOverview]: List of all items matching the criteria.
         """
-        # IMPORTANT: keep page_size=20, changing it can lead to missing items
-        #            or duplicates!
-        all_items: list[ItemOverview] = []
-        search_args = {
-            "latitude": latitude,
-            "longitude": longitude,
-            "radius": radius,
-            "page_size": 20,  # see note above!
-            "page": 1,
-            "favorites_only": favorites_only,
-            "item_categories": item_categories,
-            "diet_categories": diet_categories,
-            "search_phrase": search_phrase,
-            "with_stock_only": with_stock_only,
-            "hidden_only": hidden_only,
-            "sort_option": sort_option,
-            "expand_radius_if_not_enough_items": False,
-        }
-        search_result = self._tgtg.get_items(**search_args)
+        # Fetch favorites only if requested
+        if favorites_only:
+            items = self._get_favorite_items(latitude, longitude)
 
-        # Combine items (if expanded radius is used items list is empty
-        # and vice versa))
-        items = search_result["items"] + search_result["items_expanded_radius"]
+        else:
+            # Fetch items from discover endpoint
+            result = self._tgtg.discover(
+                latitude=latitude,
+                longitude=longitude,
+                radius=radius,
+            )
 
-        # Iterate over all result pages
-        while len(items) != 0:
-            for item in items:
-                # Skip available items if filter_only_sold_out is True
-                if sold_out_only and item["items_available"] != 0:
+            # Flatten and de-duplicate the item buckets into a single list
+            items: list[Item] = []
+            seen: set[str] = set()
+            for bucket in result["buckets"]:
+                if bucket["bucket_type"] != "ITEM":
                     continue
+                for item in bucket.get("items", []):
+                    item_id = item["item"]["item_id"]
+                    if item_id in seen:
+                        continue
+                    seen.add(item_id)
+                    items.append(item)
 
-                # Create item overview
-                price_minor_units = item["item"]["item_price"]["minor_units"]
-                decimals = item["item"]["item_price"]["decimals"]
-                item_overview = ItemOverview(
+        # Iterate over results and apply filters
+        phrase = (search_phrase or "").casefold()
+
+        all_items: list[ItemOverview] = []
+        for item in items:
+            available = item["items_available"]
+
+            # Stock filters
+            if sold_out_only and available != 0:
+                continue
+            if with_stock_only and available == 0:
+                continue
+
+            # Search phrase
+            if phrase and phrase not in item["display_name"].casefold():
+                continue
+
+            # Create item overview
+            price_minor_units = item["item"]["item_price"]["minor_units"]
+            decimals = item["item"]["item_price"]["decimals"]
+            all_items.append(
+                ItemOverview(
                     id=item["item"]["item_id"],
                     name=item["display_name"],
                     price=round(price_minor_units / 10**decimals, 2),
                     currency_code=item["item"]["item_price"]["code"],
-                    items_available=item["items_available"],
+                    items_available=available,
                 )
-                all_items.append(item_overview)
-
-            # Fetch next page
-            search_args["page"] += 1
-            sleep(1)  # to prevent rate limiting
-            search_result = self._tgtg.get_items(**search_args)
-
-            # Update items with contents of new page
-            items = (
-                search_result["items"] + search_result["items_expanded_radius"]
             )
 
         return all_items
+
+    def _get_favorite_items(
+        self,
+        latitude: float,
+        longitude: float,
+    ) -> list[Item]:
+        """
+        Retrieves all favorite items.
+
+        Args:
+            latitude (float): Latitude used as search origin.
+            longitude (float): Longitude used as search origin.
+
+        Returns:
+            list[Item]: All favorite items across all pages.
+        """
+        items: list[Item] = []
+        page = 0
+
+        # Iterate over all pages
+        while True:
+            result = self._tgtg.get_favorites(
+                latitude=latitude,
+                longitude=longitude,
+                page=page,
+            )
+            items.extend(result["favourite_items"])
+            paging = result["paging"]
+            if page + 1 >= paging["total_pages"]:
+                break
+            page += 1
+            sleep(1)  # to prevent rate limiting
+        return items
 
     def _configure_filters(self) -> dict[str, Any]:
         """
@@ -170,43 +181,14 @@ class ProductService:
         custom_args = {}
 
         # Favorites only
-        custom_args["favorites_only"] = console.confirm_prompt.ask(
-            "Favorites only"
-        )
-
-        # Item categories
-        configure_item_categories = console.confirm_prompt.ask(
-            "\nConfigure item categories"
-        )
-        if configure_item_categories:
-            categories_available = get_args(ItemCategory)
-            selections = show_selection(
-                options=categories_available, multi_selection=True
-            )
-            custom_args["item_categories"] = [
-                categories_available[category]
-                for category in cast(list[int], selections)
-            ]
-
-        # Diet categories
-        configure_diet_categories = console.confirm_prompt.ask(
-            "\nConfigure diet categories"
-        )
-        if configure_diet_categories:
-            categories_available = get_args(DietCategory)
-            selections = show_selection(
-                options=categories_available,
-                multi_selection=True,
-            )
-            custom_args["diet_categories"] = [
-                categories_available[category]
-                for category in cast(list[int], selections)
-            ]
+        favorites_only = console.confirm_prompt.ask("Favorites only")
+        if favorites_only:
+            return {"favorites_only": True}
+        else:
+            custom_args["favorites_only"] = favorites_only
 
         # Search phrase
-        use_search_phrase = console.confirm_prompt.ask(
-            "\nUse search phrase"
-        )
+        use_search_phrase = console.confirm_prompt.ask("\nUse search phrase")
         if use_search_phrase:
             custom_args["search_phrase"] = console.prompt.ask(
                 "Search phrase"
@@ -221,23 +203,6 @@ class ProductService:
             custom_args["with_stock_only"] = console.confirm_prompt.ask(
                 "\nWith stock only"
             )
-
-        # Hidden only
-        custom_args["hidden_only"] = console.confirm_prompt.ask(
-            "\nHidden only"
-        )
-
-        # Sort option
-        configure_sort_option = console.confirm_prompt.ask(
-            "\nConfigure sort option"
-        )
-        if configure_sort_option:
-            sort_options_available = get_args(SortOption)
-            selection = show_selection(sort_options_available)
-            selection = cast(int, selection)
-            custom_args["sort_option"] = sort_options_available[selection]
-        else:
-            custom_args["sort_option"] = "RELEVANCE"
 
         return custom_args
 

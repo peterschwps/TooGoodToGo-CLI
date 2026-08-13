@@ -117,11 +117,14 @@ ItemCategory = Literal[
     "FLOWERS_PLANTS",
 ]
 
-SortOption = Literal[
-    "RELEVANCE",
-    "DISTANCE",
-    "PRICE",
-    "RATING",
+QuickFilter = Literal[
+    "MEALS",
+    "BREAD_PASTRIES",
+    "GROCERIES",
+    "FLOWERS",
+    "PET_FOOD",
+    "VEGETARIAN",
+    "VEGAN",
 ]
 
 # /auth/v5/authByEmail
@@ -163,7 +166,7 @@ class OnStartupResult(TypedDict):
     features: dict[str, Any]
 
 
-# /item/v8
+# /discover/v1/
 class AverageOverallRating(TypedDict):
     average_overall_rating: float
     rating_count: int
@@ -174,24 +177,42 @@ class AverageOverallRating(TypedDict):
     average_food_quantity_rating: float
 
 
+class CategoryDetails(TypedDict):
+    id: str
+    name: str
+    icon_url_light: str
+    icon_url_dark: str
+
+
+class AllergensInfo(TypedDict):
+    shown_on_checkout: bool
+
+
 class ItemDetails(TypedDict):
     item_id: str
     item_price: Price
-    item_value: Price
+    item_value: NotRequired[Price]
+    sold_out_at_dynamic_item_price: NotRequired[Price]
     cover_picture: Picture
     logo_picture: Picture
     name: str
     description: str
     subtitle: str
-    food_handling_instructions: str
+    food_handling_instructions: NotRequired[str]
     can_user_supply_packaging: bool
     packaging_option: str
-    collection_info: str
+    collection_info: NotRequired[str]
     diet_categories: list[DietCategory]
     item_category: ItemCategory
+    item_category_v2_details: CategoryDetails
+    item_sub_category_details: CategoryDetails
     buffet: bool
     positive_rating_reasons: list[str]
     average_overall_rating: NotRequired[AverageOverallRating]
+    ratings: list[Any]
+    allergens_info: NotRequired[AllergensInfo]
+    is_edible: bool
+    is_single: bool
     favorite_count: int
 
 
@@ -203,7 +224,7 @@ class StoreLocation(TypedDict):
 class StoreDetails(TypedDict):
     store_id: str
     store_name: str
-    branch: str
+    branch: NotRequired[str]
     description: str
     tax_identifier: str
     website: str
@@ -215,13 +236,21 @@ class StoreDetails(TypedDict):
     distance: float
     cover_picture: Picture
     is_manufacturer: bool
+    is_local_hero: bool
 
 
 class ItemTag(TypedDict):
     id: str
     short_text: str
-    long_text: str
+    long_text: NotRequired[str]
+    description: NotRequired[str]
+    description_heading: NotRequired[str]
     variant: str
+
+
+class ItemCard(TypedDict):
+    item_card_type: str
+    item_card_text: str
 
 
 class Item(TypedDict):
@@ -232,6 +261,7 @@ class Item(TypedDict):
     pickup_location: PickupLocation
     purchase_end: str
     items_available: int
+    sold_out_at: NotRequired[str]
     distance: float
     favorite: bool
     subscribed_to_notification: bool
@@ -240,14 +270,50 @@ class Item(TypedDict):
     item_type: str
     matches_filters: bool
     item_tags: list[ItemTag]
+    item_card: NotRequired[ItemCard]
 
 
-class ItemsResult(TypedDict):
-    items: list[Item]
-    items_expanded_radius: list[Item]
+class BucketFilter(TypedDict):
+    id: str
+    text: str
+    enabled: bool
 
 
-# /item/v8/{item_id}
+class AppliedFilters(TypedDict):
+    text: str
+    enabled_filters: list[Any]
+
+
+class Bucket(TypedDict):
+    bucket_type: str
+    display_type: str
+    filler_type: str
+    title: NotRequired[str]
+    description: NotRequired[str]
+    items: NotRequired[list[Item]]
+    filters: NotRequired[list[BucketFilter]]
+    applied_filters: NotRequired[AppliedFilters]
+
+
+class DiscoverResult(TypedDict):
+    item_availability_status: str
+    buckets: list[Bucket]
+
+
+# /item/v9/favorites
+class Paging(TypedDict):
+    page: int
+    size: int
+    total_elements: int
+    total_pages: int
+
+
+class FavoritesResult(TypedDict):
+    favourite_items: list[Item]
+    paging: Paging
+
+
+# /item/v9/{item_id}
 class IngredientLabel(TypedDict):
     label_name: str
     probability_percentage: float
@@ -266,16 +332,19 @@ class ItemResult(TypedDict):
     pickup_interval: PickupInterval
     pickup_location: PickupLocation
     purchase_end: str
+    next_sales_window_purchase_start: NotRequired[str]
     items_available: int
+    sold_out_at: NotRequired[str]
     distance: float
     favorite: bool
     subscribed_to_notification: bool
     in_sales_window: bool
     new_item: bool
     item_type: str
-    matches_filters: bool
+    matches_filters: NotRequired[bool]
     item_tags: list[ItemTag]
     item_ingredients: NotRequired[ItemIngredients]
+    sharing_url: NotRequired[str]
 
 
 # /order/v8/create/{item_id}
