@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.3...v0.1.4) (2026-08-13)
+
+
+### Features
+
+* add latest discovery logic to search for items and favorites ([f054519](https://github.com/peterschwps/TooGoodToGo-CLI/commit/f054519cce3e12488980f108fe184aa6b66c4f07))
+
 ## [0.1.3](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.2...v0.1.3) (2026-08-08)
 
 ### Migration
