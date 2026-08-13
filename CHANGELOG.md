@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.3...v0.1.4) (2026-08-13)
+
+
+### Features
+
+* update endpoints ([#61](https://github.com/peterschwps/TooGoodToGo-CLI/issues/61)) ([b690b67](https://github.com/peterschwps/TooGoodToGo-CLI/commit/b690b679c0e26f49223ad2652f75b855a6e261af))
+
 ## [0.1.3](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.2...v0.1.3) (2026-08-08)
 
 ### Migration
