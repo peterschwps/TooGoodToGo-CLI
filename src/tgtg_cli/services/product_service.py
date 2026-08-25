@@ -11,13 +11,12 @@ from tgtg_cli.cli import console
 from tgtg_cli.cli.config import Config
 from tgtg_cli.cli.types import Item
 from tgtg_cli.services.order_service import OrderService
-from tgtg_cli.utils.exceptions import SettingsError
+from tgtg_cli.utils.exceptions import SettingsError, UnexpectedResponse
 from tgtg_cli.utils.models import ItemOverview
 from tgtg_cli.utils.notifications import send_notification
 
 
 class ProductService:
-
     def __init__(self, config: Config, tgtg: TGTG):
         self._config = config
         self._tgtg = tgtg
@@ -190,9 +189,7 @@ class ProductService:
         # Search phrase
         use_search_phrase = console.confirm_prompt.ask("\nUse search phrase")
         if use_search_phrase:
-            custom_args["search_phrase"] = console.prompt.ask(
-                "Search phrase"
-            )
+            custom_args["search_phrase"] = console.prompt.ask("Search phrase")
 
         # Sold out only / with stock only
         sold_out_only = console.confirm_prompt.ask("\nSold out only")
@@ -227,6 +224,34 @@ class ProductService:
                            missing. This check should always be false if the
                            config validation is working as expected.
         """
+        # Fetch datadome cookie if no saved one exists, since endpoints like
+        # the item or favorites endpoint are protected
+        if not self._tgtg.session.cookies.get(name="datadome"):
+            with console.loading(
+                status=(
+                    "Solving datadome challenge. "
+                    "This might take some seconds..."
+                ),
+            ):
+                datadome_cookie_result = self._tgtg.get_datadome_cookie()
+                datadome_cookie = datadome_cookie_result.get("cookie")
+                if datadome_cookie:
+                    self._tgtg.session.cookies.set(
+                        name="datadome",
+                        value=datadome_cookie,
+                        domain=".toogoodtogo.com",
+                        path="/",
+                        secure=True,
+                    )
+                    self._config.save_datadome_cookie(
+                        cookies=self._tgtg.session.cookies
+                    )
+                else:
+                    raise UnexpectedResponse(
+                        "Failed to retrieve datadome cookie."
+                    )
+            console.clear()
+
         # Load values from config
         latitude = self._config.settings.account.latitude
         longitude = self._config.settings.account.longitude
@@ -240,7 +265,6 @@ class ProductService:
         # Start filter configuration and item selection if no item is provided
         # (meaning it is the first time running the method)
         if not selected_item:
-
             # Optional custom filters
             custom_filter = console.confirm_prompt.ask(
                 "Customize search filter"

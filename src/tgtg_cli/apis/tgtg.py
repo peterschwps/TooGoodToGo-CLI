@@ -40,8 +40,7 @@ from tgtg_cli.utils.exceptions import (
 from tgtg_cli.utils.models import SessionTokens
 
 TGTG_URL = "https://api.toogoodtogo.com/api/"
-DATADOME_SDK_URL = "https://api-sdk.datadome.co/sdk/"
-DATADOME_TGTG_KEY = "1D42C2CA6131C526E09F294FE96F94"
+DATADOME_SOLVER_URL = "https://peterschwps.com/api/tgtg/datadome"
 
 THREE_DS2_SDK_VERSION = "2.2.26"
 
@@ -86,10 +85,13 @@ class TGTG(BaseClient):
                 "User-Agent": self.user_agent,
                 "Accept": "application/json",
                 "Accept-Language": "en-GB",
-                "Accept-Encoding": "gzip, deflate, br",
+                "Accept-Encoding": "gzip, deflate",
             },
             proxy=self._config.settings.account.proxy,
         )
+
+        # Add datadome cookie if previously saved to file
+        self.session.cookies.update(config.load_datadome_cookie())
 
         # Add Authorization header if cached session tokens are available
         self.tokens = self._config.get_session_tokens()
@@ -304,22 +306,17 @@ class TGTG(BaseClient):
 
             # 2. Try: Requesting Datadome cookie from Datadome SDK API
             if response.status_code == 403 and request.url:
-                datadome_cookie_result = self._get_datadome_cookie(
-                    tgtg_url=request.url
-                )
+                datadome_cookie_result = self.get_datadome_cookie()
                 datadome_cookie = datadome_cookie_result.get("cookie")
                 if datadome_cookie:
-                    cookie_attributes = [
-                        value.split("=")[-1]
-                        for value in datadome_cookie.split("; ")
-                    ]
                     self.session.cookies.set(
                         name="datadome",
-                        value=str(cookie_attributes[0]),
+                        value=datadome_cookie,
                         domain=".toogoodtogo.com",
                         path="/",
                         secure=True,
                     )
+                    self._config.save_datadome_cookie(self.session.cookies)
                     self._update_prepared_request(request)
                     response = self.session.send(request)
 
@@ -350,6 +347,7 @@ class TGTG(BaseClient):
                     path="/",
                     secure=True,
                 )
+                self._config.save_datadome_cookie(self.session.cookies)
                 self._update_prepared_request(request)
                 response = self.session.send(request)
                 if response.status_code == 403:
@@ -391,35 +389,6 @@ class TGTG(BaseClient):
 
         return False, None
 
-    def _get_datadome_cookie(self, tgtg_url: str) -> DatadomeCookieResult:
-        """
-        Requests the Datadome cookie from the Datadome SDK API.
-
-        Args:
-            tgtg_url (str): URL of the TGTG API request that triggered the
-                            captcha.
-
-        Returns:
-            DatadomeCookieResult: Result of the request. Contains the status
-                                  code and the Datadome cookie if successful.
-        """
-        response = self._post(
-            url=DATADOME_SDK_URL,
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Host": "api-sdk.datadome.co",
-                "Connection": "Keep-Alive",
-                "User-Agent": "okhttp/5.1.0",
-                "Accept-Encoding": "gzip",
-            },
-            data={
-                "ddk": DATADOME_TGTG_KEY,
-                "request": tgtg_url,
-            },
-            use_session_headers=False,
-        )
-        return response.json()
-
     def _set_bearer_token(self, access_token: str) -> None:
         """
         Sets the Authorization header for the current session.
@@ -432,6 +401,17 @@ class TGTG(BaseClient):
                 "Authorization": f"Bearer {access_token}",
             }
         )
+
+    def get_datadome_cookie(self) -> DatadomeCookieResult:
+        """
+        Requests a Datadome cookie from the internal solver.
+
+        Returns:
+            DatadomeCookieResult: Result of the request. Contains the Datadome
+                                    cookie if successful.
+        """
+        response = self._get(url=DATADOME_SOLVER_URL)
+        return response.json()
 
     def refresh_tokens(self, refresh_token: str) -> RefreshTokenResult:
         """
@@ -642,10 +622,7 @@ class TGTG(BaseClient):
                         "DELIVERY_TAB",
                     ],
                 },
-                {
-                    "type": "FILTER",
-                    "display_types": ["QUICK_FILTERS"]
-                },
+                {"type": "FILTER", "display_types": ["QUICK_FILTERS"]},
             ],
             "experimental_group": "DEFAULT",
             "debug_mode": False,
