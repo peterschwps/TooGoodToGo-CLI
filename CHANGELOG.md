@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.4...v0.1.5) (2026-08-25)
+
+
+### Features
+
+* add internal solver for Datadome challenges ([#63](https://github.com/peterschwps/TooGoodToGo-CLI/issues/63)) ([1c9ec8f](https://github.com/peterschwps/TooGoodToGo-CLI/commit/1c9ec8fd62aebb89e8d4075a7ddaa48f7a6919c5))
+
 ## [0.1.4](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.3...v0.1.4) (2026-08-13)
 
 

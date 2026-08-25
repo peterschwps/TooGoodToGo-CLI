@@ -1,6 +1,6 @@
 [project]
 name = "TGTG-CLI"
-version = "0.1.4"
+version = "0.1.5"
 description = "The only CLI for Too Good To Go (TGTG) that automates the full checkout process."
 readme = "README.md"
 requires-python = ">=3.12"
