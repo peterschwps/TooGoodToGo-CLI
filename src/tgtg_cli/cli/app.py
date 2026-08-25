@@ -1,3 +1,6 @@
+import atexit
+import contextlib
+import signal
 import sys
 from importlib.metadata import PackageNotFoundError, version
 from typing import Annotated
@@ -6,6 +9,7 @@ import typer
 from requests.exceptions import ConnectionError
 from typer import rich_utils
 
+from tgtg_cli.apis.tgtg import TGTG
 from tgtg_cli.cli import console
 from tgtg_cli.cli.config import Config
 from tgtg_cli.cli.executor import (
@@ -32,6 +36,17 @@ app = typer.Typer(
     invoke_without_command=True,
     context_settings={"help_option_names": ["-h", "--help"]},
 )
+
+
+def _persist_datadome_cookie(tgtg: TGTG) -> None:
+    """
+    Persists the current Datadome cookie from the TGTG session.
+
+    Args:
+        tgtg (TGTG): TGTG client whose session cookies should be saved.
+    """
+    with contextlib.suppress(OSError):
+        Config.save_datadome_cookie(tgtg.session.cookies)
 
 
 def version_callback(value: bool) -> None:
@@ -93,14 +108,16 @@ def main(
     """
     console.clear()
 
-    # Build container and initialize Config and TGTG singletons
-    # Both providers are lazy and need to be resolved here
+    # Build container and initialize Config and TGTG singletons.
+    # Both providers are lazy and need to be resolved here.
     # Initializing the Config class checks the user's settings file for errors
-    # and loads all required variables for the application
+    # and loads all required variables for the application.
+    # Initializing the TGTG class loads the datadome cookie and session tokens
+    # if available.
     container = Container()
     try:
         container.config()
-        container.tgtg()
+        tgtg = container.tgtg()
 
     except SettingsError as e:
         console.clear()
@@ -116,6 +133,23 @@ def main(
             "Make sure you are connected to the internet."
         )
         sys.exit(1)
+
+    # Register function to persist Datadome cookie on normal exit
+    atexit.register(_persist_datadome_cookie, tgtg)
+
+    def _on_term(signum: int, frame: object) -> None:
+        """
+        Saves the Datadome cookie and exits on SIGTERM.
+
+        Args:
+            signum (int): Signal number that triggered the handler.
+            frame (object): Current stack frame when the signal was received.
+        """
+        _persist_datadome_cookie(tgtg)
+        sys.exit(128 + signum)
+
+    # Register function to persist Datadome cookie on SIGTERM
+    signal.signal(signal.SIGTERM, _on_term)
 
     # Resolve services
     account_service = container.account_service()

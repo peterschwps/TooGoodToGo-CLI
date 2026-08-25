@@ -1,7 +1,9 @@
 from typing import Any, Literal, NotRequired, Required, TypedDict
 
-# ===== Internal Types =====
 
+# ===== Internal Types =====
+class DatadomeCookieResult(TypedDict):
+    cookie: NotRequired[str]
 
 # ===== Adyen API Types =====
 # /checkoutshopper/v1/submitThreeDS2Fingerprint?token={client_key}
@@ -43,12 +45,6 @@ class BinLookupResult(TypedDict):
     brands: list[Brand]
     issuingCountryCode: str
     requestId: str
-
-
-# ===== Datadome API Types =====
-class DatadomeCookieResult(TypedDict):
-    status: int
-    cookie: NotRequired[str]
 
 
 # ===== TGTG API Types =====

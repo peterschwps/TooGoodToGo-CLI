@@ -5,6 +5,7 @@ import sys
 import webbrowser
 from datetime import datetime, time
 from functools import cached_property
+from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from pathlib import Path
 from time import sleep
 from typing import Self
@@ -35,6 +36,7 @@ SETTINGS_FILE_PATH = SETTINGS_DIR / "settings.ini"
 CACHE_DIR = Path(user_cache_dir(PROJECT_NAME, ensure_exists=True))
 SESSION_FILE_PATH = CACHE_DIR / "session.json"
 DEVICE_FILE_PATH = CACHE_DIR / "device.json"
+COOKIES_FILE_PATH = CACHE_DIR / "cookies.txt"
 
 LOG_DIR = Path(CACHE_DIR, "logs")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -85,6 +87,7 @@ def _convert_empty_string_to_none(value: object) -> object:
     if isinstance(value, str) and value.strip() == "":
         return None
     return value
+
 
 class AccountSettings(BaseModel):
     email: EmailStr = Field(alias="EMAIL", min_length=5)
@@ -827,7 +830,7 @@ class Config:
             json.dump(
                 SessionModel().model_dump(by_alias=True),
                 session_file,
-                indent=4
+                indent=4,
             )
 
     @staticmethod
@@ -871,3 +874,54 @@ class Config:
                 session_file,
                 indent=4,
             )
+
+    @staticmethod
+    def load_datadome_cookie() -> MozillaCookieJar:
+        """
+        Loads the datadome cookie from the cookies file. Creates a new empty
+        cookies file if it does not exist or is corrupt.
+
+        Returns:
+            MozillaCookieJar: Cookie jar loaded from the cookies file.
+        """
+        # Create empty CookieJar if it does not exist
+        if not COOKIES_FILE_PATH.exists():
+            Config.generate_new_cookies_file()
+            return MozillaCookieJar(filename=str(COOKIES_FILE_PATH))
+
+        # Create jar and load cookies
+        jar = MozillaCookieJar(filename=str(COOKIES_FILE_PATH))
+        try:
+            jar.load(ignore_discard=True, ignore_expires=True)
+            return jar
+
+        # Use empty jar on errors
+        except (OSError, LoadError):
+            console.warning(
+                "Invalid cookies file. Unable to load datadome cookie..."
+            )
+            Config.generate_new_cookies_file()
+            return MozillaCookieJar(filename=str(COOKIES_FILE_PATH))
+
+    @staticmethod
+    def generate_new_cookies_file() -> None:
+        """
+        Generates a new empty cookies file.
+        """
+        jar = MozillaCookieJar(filename=str(COOKIES_FILE_PATH))
+        jar.save(ignore_discard=True, ignore_expires=True)
+
+    @staticmethod
+    def save_datadome_cookie(cookies: CookieJar) -> None:
+        """
+        Saves the datadome cookie to the cookies file.
+
+        Args:
+            cookies (CookieJar): CookieJar containing the datadome cookie with
+                                 the name 'datadome'.
+        """
+        jar = MozillaCookieJar(filename=str(COOKIES_FILE_PATH))
+        for cookie in cookies:
+            if cookie.name == "datadome":
+                jar.set_cookie(cookie)
+        jar.save(ignore_discard=True, ignore_expires=True)
