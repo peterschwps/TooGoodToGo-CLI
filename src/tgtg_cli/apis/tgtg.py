@@ -1,6 +1,7 @@
 import base64
 import json
 import re
+from collections.abc import Callable
 from time import sleep, time
 from uuid import uuid4
 
@@ -16,7 +17,6 @@ from tgtg_cli.cli.types import (
     CancelOrderResult,
     CreateOrderResult,
     DatadomeCaptchaResult,
-    DatadomeCookieResult,
     DiscoverResult,
     Error,
     FavoritesResult,
@@ -69,6 +69,9 @@ class Endpoints:
 class TGTG(BaseClient):
     def __init__(self, config: Config):
         self._config = config
+
+        # Callback for console output handling during the solver cooldown
+        self.on_solver_cooldown: Callable[[int], None] | None = None
 
         # Configure session
         self.user_agent = (
@@ -304,21 +307,11 @@ class TGTG(BaseClient):
             sleep(1)
             response = self.session.send(request)
 
-            # 2. Try: Requesting Datadome cookie from Datadome SDK API
+            # 2. Try: Requesting Datadome cookie from Datadome solver
             if response.status_code == 403 and request.url:
-                datadome_cookie_result = self.get_datadome_cookie()
-                datadome_cookie = datadome_cookie_result.get("cookie")
-                if datadome_cookie:
-                    self.session.cookies.set(
-                        name="datadome",
-                        value=datadome_cookie,
-                        domain=".toogoodtogo.com",
-                        path="/",
-                        secure=True,
-                    )
-                    self._config.save_datadome_cookie(self.session.cookies)
-                    self._update_prepared_request(request)
-                    response = self.session.send(request)
+                self.fetch_datadome_cookie()
+                self._update_prepared_request(request)
+                response = self.session.send(request)
 
             # 3. Try: Solve the Datadome captcha using CapSolver
             # IMPORTANT: This should only be done at login to prevent high
@@ -402,16 +395,48 @@ class TGTG(BaseClient):
             }
         )
 
-    def get_datadome_cookie(self) -> DatadomeCookieResult:
+    def fetch_datadome_cookie(self) -> None:
         """
-        Requests a Datadome cookie from the internal solver.
+        Requests a Datadome cookie from the internal solver, stores it in the
+        current session and saves it to the cache. Retries until the solver
+        succeeds when a temporary ban is reported by the solver.
 
-        Returns:
-            DatadomeCookieResult: Result of the request. Contains the Datadome
-                                    cookie if successful.
+        Raises:
+            UnexpectedResponse: If the solver responds with an unexpected
+                                status code or payload.
         """
-        response = self._get(url=DATADOME_SOLVER_URL)
-        return response.json()
+        while True:
+            response = self._get(url=DATADOME_SOLVER_URL)
+
+            # Save cookie to session and cache
+            if response.status_code == 200:
+                cookie = response.json().get("cookie")
+                if not cookie:
+                    raise UnexpectedResponse(
+                        "Failed to retrieve Datadome cookie."
+                    )
+                self.session.cookies.set(
+                    name="datadome",
+                    value=cookie,
+                    domain=".toogoodtogo.com",
+                    path="/",
+                    secure=True,
+                )
+                self._config.save_datadome_cookie(self.session.cookies)
+                return
+
+            # Await solver cooldown before retrying
+            if response.status_code == 503:
+                retry_after = int(response.headers.get("Retry-After", 900))
+                if self.on_solver_cooldown:
+                    self.on_solver_cooldown(retry_after)
+                else:
+                    sleep(retry_after)
+                continue
+
+            raise UnexpectedResponse(
+                "Failed to retrieve Datadome cookie. Please try again later."
+            )
 
     def refresh_tokens(self, refresh_token: str) -> RefreshTokenResult:
         """
