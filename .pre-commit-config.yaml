@@ -6,27 +6,37 @@ repos:
     rev: v0.15.12
     hooks:
       - id: ruff
+        name: Linting with ruff
         args: [--fix]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-toml
-      - id: check-added-large-files
-      - id: check-merge-conflict
+        name: Trim trailing whitespace
       - id: mixed-line-ending
+        name: Fix mixed line endings
         args: [--fix=lf]
+      - id: end-of-file-fixer
+        name: Fix end of files
+      - id: check-yaml
+        name: Check YAML files
+      - id: check-toml
+        name: Check TOML files
+      - id: check-added-large-files
+        name: Check for large added files
+      - id: check-merge-conflict
+        name: Check for merge conflicts
 
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v3.6.0
     hooks:
       - id: conventional-pre-commit
+        name: Check for Conventional Commits
         stages: [commit-msg]
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1
     hooks:
       - id: gitleaks
+        name: Ensure no hardcoded secrets
