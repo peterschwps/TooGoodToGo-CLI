@@ -1,10 +1,6 @@
 from typing import Any, Literal, NotRequired, Required, TypedDict
 
 
-# ===== Internal Types =====
-class DatadomeCookieResult(TypedDict):
-    cookie: NotRequired[str]
-
 # ===== Adyen API Types =====
 # /checkoutshopper/v1/submitThreeDS2Fingerprint?token={client_key}
 class AdyenAction(TypedDict):
