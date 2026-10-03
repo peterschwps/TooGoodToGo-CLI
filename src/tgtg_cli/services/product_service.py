@@ -11,7 +11,7 @@ from tgtg_cli.cli import console
 from tgtg_cli.cli.config import Config
 from tgtg_cli.cli.types import Item
 from tgtg_cli.services.order_service import OrderService
-from tgtg_cli.utils.exceptions import SettingsError, UnexpectedResponse
+from tgtg_cli.utils.exceptions import SettingsError
 from tgtg_cli.utils.models import ItemOverview
 from tgtg_cli.utils.notifications import send_notification
 
@@ -229,28 +229,12 @@ class ProductService:
         if not self._tgtg.session.cookies.get(name="datadome"):
             with console.loading(
                 status=(
-                    "Solving datadome challenge. "
+                    "Solving Datadome challenge. "
                     "This might take some seconds..."
                 ),
             ):
-                datadome_cookie_result = self._tgtg.get_datadome_cookie()
-                datadome_cookie = datadome_cookie_result.get("cookie")
-                if datadome_cookie:
-                    self._tgtg.session.cookies.set(
-                        name="datadome",
-                        value=datadome_cookie,
-                        domain=".toogoodtogo.com",
-                        path="/",
-                        secure=True,
-                    )
-                    self._config.save_datadome_cookie(
-                        cookies=self._tgtg.session.cookies
-                    )
-                else:
-                    raise UnexpectedResponse(
-                        "Failed to retrieve datadome cookie."
-                    )
-            console.clear()
+                self._tgtg.fetch_datadome_cookie()
+        console.clear()
 
         # Load values from config
         latitude = self._config.settings.account.latitude

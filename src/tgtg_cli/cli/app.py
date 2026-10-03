@@ -151,6 +151,10 @@ def main(
     # Register function to persist Datadome cookie on SIGTERM
     signal.signal(signal.SIGTERM, _on_term)
 
+    # Register callback to handle console output if the Datadome
+    # solver is reporting a cooldown
+    tgtg.on_solver_cooldown = console.await_solver_cooldown
+
     # Resolve services
     account_service = container.account_service()
     product_service = container.product_service()

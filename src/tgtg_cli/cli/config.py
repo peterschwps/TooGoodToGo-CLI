@@ -898,7 +898,7 @@ class Config:
         # Use empty jar on errors
         except (OSError, LoadError):
             console.warning(
-                "Invalid cookies file. Unable to load datadome cookie..."
+                "Invalid cookies file. Unable to load Datadome cookie..."
             )
             Config.generate_new_cookies_file()
             return MozillaCookieJar(filename=str(COOKIES_FILE_PATH))

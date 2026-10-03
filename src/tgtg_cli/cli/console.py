@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import sleep
 
 import rich.default_styles
 from rich.style import Style
@@ -204,19 +205,37 @@ class CustomizedLive(Live):
         self.add_ellipsis = add_ellipsis
         super().__init__(renderable=renderable, transient=transient, **kwargs)
 
+    def start(self, refresh: bool = False) -> None:
+        """
+        Starts the CustomizedLive display and registers it as the active
+        console display.
+
+        Args:
+            refresh (bool, optional): If True, refreshes immediately.
+                                      Defaults to False.
+        """
+        super().start(refresh=refresh)
+        if isinstance(self.console, CustomizedConsole):
+            self.console._push_active_display(self)
+
     def stop(self) -> None:
         """
         Overrides the default stop() method of Rich's Live class.
         Adds an option to ensure the latest rendered message in the console has
         an ellipsis (...). This behavior can be enabled by default through the
         add_ellipsis=True parameter when instantiating the class.
+        Unregisters the display from the console.
         """
-        if self.add_ellipsis and not self.transient:
-            renderable = self.get_renderable()
-            if isinstance(renderable, CustomizedRenderable):
-                renderable._frame = 2
-                self.update(renderable)
-        super().stop()
+        try:
+            if self.add_ellipsis and not self.transient:
+                renderable = self.get_renderable()
+                if isinstance(renderable, CustomizedRenderable):
+                    renderable._frame = 2
+                    self.update(renderable)
+            super().stop()
+        finally:
+            if isinstance(self.console, CustomizedConsole):
+                self.console._pop_active_display(self)
 
 
 class CustomizedStatus(Status):
@@ -231,14 +250,28 @@ class CustomizedStatus(Status):
         super().__init__(*args, **kwargs)
         self._live.transient = False
 
+    def start(self) -> None:
+        """
+        Starts the CustomizedStatus display and registers it as the active
+        console display.
+        """
+        super().start()
+        if isinstance(self.console, CustomizedConsole):
+            self.console._push_active_display(self)
+
     def stop(self) -> None:
         """
         Overrides the default stop() method of Rich's Status class.
         Removes the spinner from the last rendered message in the console
-        before stopping the animation.
+        before stopping the animation and unregisters the display from the
+        console.
         """
-        self._live.update(self._spinner.text)
-        super().stop()
+        try:
+            self._live.update(self._spinner.text)
+            super().stop()
+        finally:
+            if isinstance(self.console, CustomizedConsole):
+                self.console._pop_active_display(self)
 
 
 class CustomizedConsole(Console):
@@ -249,6 +282,122 @@ class CustomizedConsole(Console):
         self.int_prompt = CustomizedIntPrompt(console=self, show_choices=False)
         self.confirm_prompt = CustomizedConfirmPrompt(console=self)
         self._awaiting_input = False
+        self._active_displays: list[CustomizedLive | CustomizedStatus] = []
+
+    def _push_active_display(
+        self,
+        display: CustomizedLive | CustomizedStatus,
+    ) -> None:
+        """
+        Registers a CustomizedLive or CustomizedStatus display as the currently
+        active display.
+
+        Args:
+            display (CustomizedLive | CustomizedStatus): Display that just
+                                                         started.
+        """
+        self._active_displays.append(display)
+
+    def _pop_active_display(
+        self,
+        display: CustomizedLive | CustomizedStatus,
+    ) -> None:
+        """
+        Unregisters a CustomizedLive or CustomizedStatus display when it stops.
+
+        Args:
+            display (CustomizedLive | CustomizedStatus): Display that is
+                                                         stopping.
+        """
+        # Check if display is on top of the stack
+        if self._active_displays and self._active_displays[-1] is display:
+            self._active_displays.pop()
+
+        # Defensive guard to remove display if it is not on top of the stack
+        # (should not happen, but just in case)
+        elif display in self._active_displays:
+            self._active_displays.remove(display)
+
+    @property
+    def active_display(self) -> CustomizedLive | CustomizedStatus | None:
+        """
+        Returns the currently active CustomizedLive or CustomizedStatus display
+        from the top of the stack or None if no display is active.
+        """
+        if self._active_displays:
+            return self._active_displays[-1]
+        return None
+
+    def await_solver_cooldown(self, retry_after: int) -> None:
+        """
+        Waits for the Datadome solver cooldown to expire. Updates the currently
+        active CustomizedLive or CustomizedStatus display if one exists,
+        otherwise shows a transient waiting message.
+
+        Args:
+            retry_after (int): Seconds to wait before the next solver attempt.
+        """
+        text = (
+            "Datadome solver is temporarily banned. "
+            "Retrying in {retry_after} seconds..."
+        )
+        display = self.active_display
+
+        # Start countdown with a transient display if no active display
+        # This means that the message will disappear after the countdown
+        if display is None:
+            remaining = retry_after
+            with self.waiting(
+                status=text.format(retry_after=remaining),
+                show_time=False,
+                transient=True,
+            ) as status:
+                while remaining > 0:
+                    status.update(
+                        CustomizedRenderable(
+                            text=text.format(retry_after=remaining),
+                            show_time=False,
+                        )
+                    )
+                    sleep(1)
+                    remaining -= 1
+            return
+
+        # Capture current display state to restore it later
+        if isinstance(display, CustomizedStatus):
+            previous = display.status
+        else:
+            renderable = display.get_renderable()
+            if isinstance(renderable, CustomizedRenderable):
+                previous = renderable
+            else:
+                previous = str(renderable)
+
+        # Start countdown and update the active display
+        remaining = retry_after
+        try:
+            while remaining > 0:
+                message = text.format(retry_after=remaining)
+                if isinstance(display, CustomizedStatus):
+                    display.update(message)
+                else:
+                    display.update(
+                        CustomizedRenderable(text=message, show_time=False)
+                    )
+                sleep(1)
+                remaining -= 1
+
+        # Restore previous display state
+        finally:
+            if (
+                isinstance(display, CustomizedStatus) or
+                isinstance(previous, CustomizedRenderable)
+            ):
+                display.update(previous)
+            else:
+                display.update(
+                    CustomizedRenderable(text=str(previous), show_time=False)
+                )
 
     def _get_current_time(self) -> str:
         """
