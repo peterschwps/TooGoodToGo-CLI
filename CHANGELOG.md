@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.5...v0.1.6) (2026-10-03)
+
+
+### Features
+
+* add cooldown handling for the internal Datadome solver ([28e3c2e](https://github.com/peterschwps/TooGoodToGo-CLI/commit/28e3c2e670ee66e6e06ad8a407df00a5a6f13a6a))
+
 ## [0.1.5](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.4...v0.1.5) (2026-08-25)
 
 
