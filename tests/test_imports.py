@@ -19,9 +19,7 @@ def test_console_scripts_registered() -> None:
     """
     All console-script entry points must be registered.
     """
-    entry_points = importlib.metadata.entry_points(
-        group="console_scripts"
-    )
+    entry_points = importlib.metadata.entry_points(group="console_scripts")
     names = {ep.name for ep in entry_points}
 
     assert "tgtg" in names
@@ -36,12 +34,8 @@ def test_container_definition_is_inert(mocker) -> None:
     Config or TGTG. Both providers must remain lazy until resolved
     explicitly via container.config() / container.tgtg().
     """
-    config_init = mocker.patch.object(
-        Config, "__init__", return_value=None
-    )
-    tgtg_init = mocker.patch.object(
-        TGTG, "__init__", return_value=None
-    )
+    config_init = mocker.patch.object(Config, "__init__", return_value=None)
+    tgtg_init = mocker.patch.object(TGTG, "__init__", return_value=None)
 
     # Force a fresh import of the container module
     sys.modules.pop("tgtg_cli.container", None)
