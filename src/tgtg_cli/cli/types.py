@@ -158,7 +158,7 @@ class OnStartupResult(TypedDict):
     features: dict[str, Any]
 
 
-# /discover/v1/
+# /discover/v2/
 class AverageOverallRating(TypedDict):
     average_overall_rating: float
     rating_count: int
@@ -205,6 +205,7 @@ class ItemDetails(TypedDict):
     allergens_info: NotRequired[AllergensInfo]
     is_edible: bool
     is_single: bool
+    inventory_type: NotRequired[str]
     favorite_count: int
 
 
@@ -285,11 +286,60 @@ class Bucket(TypedDict):
     items: NotRequired[list[Item]]
     filters: NotRequired[list[BucketFilter]]
     applied_filters: NotRequired[AppliedFilters]
+    tiles: NotRequired[list[dict[str, Any]]]
 
 
 class DiscoverResult(TypedDict):
     item_availability_status: str
     buckets: list[Bucket]
+
+
+# /discover/v1/bucket
+class DiscoverBucketResult(TypedDict):
+    mobile_bucket: Bucket
+
+
+# store/v4/{store_id}
+class Milestone(TypedDict):
+    type: str
+    value: str
+
+
+class StoreItem(TypedDict):
+    item: ItemDetails
+    display_name: str
+    pickup_interval: NotRequired[PickupInterval]
+    pickup_location: PickupLocation
+    purchase_end: NotRequired[str]
+    items_available: int
+    sold_out_at: NotRequired[str]
+    distance: float
+    favorite: bool
+    subscribed_to_notification: bool
+    in_sales_window: bool
+    new_item: bool
+    item_type: str
+    matches_filters: bool
+
+
+class StoreResult(TypedDict):
+    store_id: str
+    store_name: str
+    branch: NotRequired[str]
+    description: str
+    tax_identifier: str
+    website: str
+    store_location: StoreLocation
+    logo_picture: Picture
+    store_time_zone: str
+    hidden: bool
+    favorite_count: int
+    items: list[StoreItem]
+    milestones: list[Milestone]
+    distance: float
+    cover_picture: Picture
+    is_manufacturer: bool
+    is_local_hero: bool
 
 
 # /item/v9/favorites

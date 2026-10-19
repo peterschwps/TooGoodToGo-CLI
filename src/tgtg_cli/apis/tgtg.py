@@ -17,6 +17,7 @@ from tgtg_cli.cli.types import (
     CancelOrderResult,
     CreateOrderResult,
     DatadomeCaptchaResult,
+    DiscoverBucketResult,
     DiscoverResult,
     Error,
     FavoritesResult,
@@ -29,6 +30,7 @@ from tgtg_cli.cli.types import (
     PayOrderResult,
     RefreshTokenResult,
     SignUpByEmailResult,
+    StoreResult,
 )
 from tgtg_cli.utils.captcha import solve_datadome
 from tgtg_cli.utils.exceptions import (
@@ -50,7 +52,8 @@ class Endpoints:
     AUTH_BY_REQUEST_PIN = TGTG_URL + "auth/v5/authByRequestPin"
     AUTH_BY_REQUEST_POLLING_ID = TGTG_URL + "auth/v5/authByRequestPollingId"
     SIGN_UP_BY_EMAIL = TGTG_URL + "auth/v5/signUpByEmail"
-    DISCOVER = TGTG_URL + "discover/v1/"
+    DISCOVER = TGTG_URL + "discover/v2/"
+    DISCOVER_BUCKET = TGTG_URL + "discover/v1/bucket"
     FAVORITES = TGTG_URL + "item/v9/favorites"
     ITEM = TGTG_URL + "item/v9/{item_id}"
     ON_STARTUP = TGTG_URL + "app/v1/onStartup"
@@ -64,6 +67,7 @@ class Endpoints:
         TGTG_URL + "payment/v4/{payment_id}/additionalAuthorization"
     )
     REFRESH_TOKEN = TGTG_URL + "token/v1/refresh"
+    STORE = TGTG_URL + "store/v4/{store_id}"
 
 
 class TGTG(BaseClient):
@@ -612,7 +616,7 @@ class TGTG(BaseClient):
                 "latitude": latitude,
                 "longitude": longitude,
             },
-            "radius": radius,
+            "radius": float(radius),
             "supported_buckets": [
                 {
                     "type": "ACTION",
@@ -645,18 +649,115 @@ class TGTG(BaseClient):
                         "RECOMMENDATIONS",
                         "MANUFACTURER",
                         "DELIVERY_TAB",
+                        "RESERVE_AHEAD",
                     ],
                 },
                 {"type": "FILTER", "display_types": ["QUICK_FILTERS"]},
+                {"type": "TILE", "display_types": ["TILES"]},
             ],
             "experimental_group": "DEFAULT",
             "debug_mode": False,
             "is_gps": False,
             "origin_updated": False,
             "filters": filters or [],
-            "crm_campaign": {},
         }
         response = self._post(url=Endpoints.DISCOVER, json=data)
+        return response.json()
+
+    def discover_bucket(
+            self,
+            latitude: float,
+            longitude: float,
+            radius: int,
+            filler_type: str,
+    ) -> DiscoverBucketResult:
+        """
+        Retrieves the full list for a given category (e.g. favorites) of the
+        discover feed. Gets triggered when the user clicks "See all" in the
+        app.
+
+        Automatically handles paging for the "Favorites" category, which is the
+        only category that seems to support paging.
+
+        Args:
+            latitude (float): Latitude used as search origin.
+            longitude (float): Longitude used as search origin.
+            radius (int): Search radius in kilometers. Always needed for the
+                          request, but not necessarily used for filtering the
+                          results (e.g. when fetching all favorites).
+            filler_type (str): Category to retrieve, e.g. "Favorites".
+
+        Returns:
+            DiscoverBucketResult: All items of the requested category.
+        """
+        data = {
+            "origin": {
+                "latitude": latitude,
+                "longitude": longitude,
+            },
+            "radius": float(radius),
+            "bucket": {
+                "filler_type": filler_type,
+            },
+            "filters": []
+        }
+
+        # Handle favorites differently, as it is the only filler type that
+        # seems to support paging
+        if filler_type == "Favorites":
+            data["paging"] = {
+                "page": 0,
+                "size": 100
+            }
+            response = self._post(url=Endpoints.DISCOVER_BUCKET, json=data)
+            favorites = response.json()
+
+            # Iterate through all pages
+            while (
+                len(
+                    favorites.get("mobile_bucket", {}).get("items", [])
+                ) == 100
+            ):
+                sleep(1)  # to prevent rate limiting
+                data["paging"]["page"] += 1
+                response = self._post(url=Endpoints.DISCOVER_BUCKET, json=data)
+                new_favorites = response.json()
+                favorites["mobile_bucket"]["items"].extend(
+                    new_favorites.get("mobile_bucket", {}).get("items", [])
+                )
+            return favorites
+
+        else:
+            response = self._post(url=Endpoints.DISCOVER_BUCKET, json=data)
+            return response.json()
+
+    def get_store(
+        self,
+        latitude: float,
+        longitude: float,
+        store_id: str,
+    ) -> StoreResult:
+        """
+        Retrieves a store with all of its items and their current stock.
+
+        Args:
+            latitude (float): Latitude used as search origin.
+            longitude (float): Longitude used as search origin.
+            store_id (str): ID of the store to look up.
+
+        Returns:
+            StoreResult: Response with the store details and its items.
+        """
+        data = {
+            "origin": {
+                "latitude": latitude,
+                "longitude": longitude,
+            }
+        }
+        response = self._post(
+            url=Endpoints.STORE.format(store_id=store_id),
+            json=data,
+        )
         return response.json()
 
     def get_favorites(
