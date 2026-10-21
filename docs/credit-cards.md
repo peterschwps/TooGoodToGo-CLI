@@ -15,11 +15,11 @@ or have a special authorization flow.
     recommended to use a dedicated virtual card with a custom spending
     limit.**
 
-[**Bunq**](https://bunq.com) is one of the recommended providers as it
-provides the necessary features and has been tested already. Opening an
-account is free, virtual cards can be created at no extra cost and you can set
-spending limits for each card. You can delete and re-create a new card at any
-time.
+[**Bunq**](https://bunq.com) is one of the recommended providers for EEA
+customers as it provides the necessary features and has been tested already.
+Opening an account is free, virtual cards can be created at no extra cost and
+you can set spending limits for each card. You can delete and re-create a new
+card at any time.
 
 You can find more information about the different authorization flows and a
 list of fully supported providers down below.

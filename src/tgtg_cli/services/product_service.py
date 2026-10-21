@@ -9,7 +9,7 @@ from rich.table import Table
 from tgtg_cli.apis.tgtg import TGTG
 from tgtg_cli.cli import console
 from tgtg_cli.cli.config import Config
-from tgtg_cli.cli.types import Item
+from tgtg_cli.cli.types import Item, ItemResult
 from tgtg_cli.services.order_service import OrderService
 from tgtg_cli.utils.exceptions import SettingsError
 from tgtg_cli.utils.models import ItemOverview
@@ -21,14 +21,14 @@ class ProductService:
         self._config = config
         self._tgtg = tgtg
 
-    def _get_item_availability(
+    def _get_item(
         self,
         latitude: float,
         longitude: float,
         item_id: str,
-    ) -> int:
+    ) -> ItemResult:
         """
-        Retrieves the current stock count for a specific item.
+        Retrieves the details for a specific item.
 
         Args:
             latitude (float): Latitude used as search origin.
@@ -36,14 +36,14 @@ class ProductService:
             item_id (str): ID of the item to look up.
 
         Returns:
-            int: Number of currently available items.
+            ItemResult: Full details of the item.
         """
         item = self._tgtg.get_item(
             latitude=latitude,
             longitude=longitude,
             item_id=item_id,
         )
-        return item["items_available"]
+        return item
 
     def _get_items(
         self,
@@ -172,22 +172,15 @@ class ProductService:
 
     def _configure_filters(self) -> dict[str, Any]:
         """
-        Configures all filter options.
+        Configures various filter options.
 
         Returns:
             dict[str, Any]: All selected filter options.
         """
         custom_args = {}
 
-        # Favorites only
-        favorites_only = console.confirm_prompt.ask("Favorites only")
-        if favorites_only:
-            return {"favorites_only": True}
-        else:
-            custom_args["favorites_only"] = favorites_only
-
         # Search phrase
-        use_search_phrase = console.confirm_prompt.ask("\nUse search phrase")
+        use_search_phrase = console.confirm_prompt.ask("Use search phrase")
         if use_search_phrase:
             custom_args["search_phrase"] = console.prompt.ask("Search phrase")
 
@@ -206,8 +199,9 @@ class ProductService:
     def monitor(self, selected_item: ItemOverview | None = None) -> None:
         """
         Monitors an item. Asks the user to configure filters, then searches for
-        items matching the criteria and prompts the user to select one of them.
-        If the selected item is becomes available and checkout is enabled, the
+        favorite items matching the criteria and prompts the user to select one
+        of them.
+        If the selected item becomes available and checkout is enabled, the
         method initializes the checkout process.
         If the order fails and the item is no longer available, the monitoring
         process starts again.
@@ -234,7 +228,7 @@ class ProductService:
                 ),
             ):
                 self._tgtg.fetch_datadome_cookie()
-        console.clear()
+            console.clear()
 
         # Load values from config
         latitude = self._config.settings.account.latitude
@@ -249,6 +243,7 @@ class ProductService:
         # Start filter configuration and item selection if no item is provided
         # (meaning it is the first time running the method)
         if not selected_item:
+
             # Optional custom filters
             custom_filter = console.confirm_prompt.ask(
                 "Customize search filter"
@@ -258,11 +253,11 @@ class ProductService:
                 console.clear()
                 custom_args = self._configure_filters()
 
-            # Print notice to console
+            # Print notice to console and load favorites
             console.clear()
             with console.loading(
                 status=(
-                    "Searching for items in your area. "
+                    "Loading your favorite items. "
                     "This might take some seconds..."
                 ),
             ):
@@ -270,21 +265,17 @@ class ProductService:
                     latitude=latitude,
                     longitude=longitude,
                     radius=radius,
+                    favorites_only=True,
                     **custom_args,
                 )
             console.clear()
 
             # Check if items were found
             if len(items) == 0:
-                console.error("No items found in your area.")
+                console.error("No favorites found.")
                 console.info(
-                    "Please try a different area, increase the radius "
-                    "or change the filter settings.",
-                    show_time=False,
-                )
-                console.info(
-                    "Keep in mind that you need to restart the program "
-                    "if you change your settings.",
+                    "Open the app on your phone and add favorites "
+                    "to start monitoring.",
                     show_time=False,
                 )
                 return
@@ -322,6 +313,38 @@ class ProductService:
                 selected_item = items[selection - 1]
                 break
 
+        # Check for next_sales_window_purchase_start and ask user if the value
+        # should be used to sleep until the start of the sales window
+        item_details = self._get_item(
+            latitude=latitude,
+            longitude=longitude,
+            item_id=selected_item.id,
+        )
+        next_sales_window_purchase_start = item_details.get(
+            "next_sales_window_purchase_start"
+        )
+        sleep_until_start = False
+        if next_sales_window_purchase_start:
+            start_utc = datetime.fromisoformat(
+                next_sales_window_purchase_start
+            )
+            start = start_utc.astimezone()
+            console.clear()
+            console.info(
+                f"The next sales window opens at "
+                f"{start:%Y-%m-%d %H:%M:%S %Z}.\n",
+                show_time=False,
+            )
+            sleep_until_start = console.confirm_prompt.ask(
+                "Do you want to sleep until then"
+            )
+
+            # Set start and end time (with one minute monitoring duration)
+            if sleep_until_start:
+                start_time = start
+                end_time = start + timedelta(minutes=1)
+                use_time_frame = True
+
         # Inner function to check if the current time is within the time frame
         def is_within_time_frame() -> bool:
             """
@@ -331,12 +354,24 @@ class ProductService:
                 bool: True if the current time is within the time frame,
                       otherwise False.
             """
+            # No time frame used
             if not start_time or not end_time:
                 return True
+
+            # Automatic timeframe (using 'next_sales_window_purchase_start')
+            if (
+                isinstance(start_time, datetime)
+                and isinstance(end_time, datetime)
+            ):
+                return start_time <= datetime.now().astimezone() <= end_time
+
+            # Configured timeframe (using the settings)
             current_time = datetime.now().time()
-            if start_time <= end_time:
-                return start_time <= current_time <= end_time
-            return start_time <= current_time or current_time <= end_time
+            start = cast(time, start_time)  # only for type checking
+            end = cast(time, end_time)      # only for type checking
+            if start <= end:
+                return start <= current_time <= end
+            return start <= current_time or current_time <= end
 
         # Inner function for Rich's live display
         def get_monitoring_message(is_active: bool) -> str:
@@ -352,16 +387,41 @@ class ProductService:
                 str: Status message to be shown in the console.
             """
             item = selected_item.name
+
+            # Active time frame
             if is_active:
+                current_time = datetime.now().astimezone()
                 return (
                     f"Monitoring '{item}' to be back in stock.\n"
                     f"➤ Delay: {delay} ms\n"
-                    f"➤ Last update: {datetime.now().strftime('%H:%M:%S')}"
+                    f"➤ Last update: {current_time.strftime('%H:%M:%S %Z')}"
                 )
-            wake_up_time = cast(time, start_time)  # only for type checking
+
+            # Automatic start time
+            if sleep_until_start:
+                wake_up_time = cast(
+                    datetime,
+                    start_time,
+                )
+
+            # Configured start time
+            else:
+                current_time = datetime.now().astimezone()
+                wake_up_time = datetime.combine(
+                    date=current_time.date(),
+                    time=cast(time, start_time),
+                ).astimezone()
+
+                # Add one day if current time is past the start time
+                # Example: Start time is 21:00 and end time is 22:00.
+                #          Current time is 23:00. Then the monitor
+                #          needs to sleep until 21:00 of the next day.
+                if wake_up_time <= current_time:
+                    wake_up_time += timedelta(days=1)
+
             return (
-                f"Sleeping until {wake_up_time.strftime('%H:%M:%S')} "
-                f"before starting the monitor."
+                f"Sleeping until {wake_up_time:%Y-%m-%d %H:%M:%S %Z} before "
+                f"starting to monitor '{item}'."
             )
 
         # Check time frame
@@ -378,11 +438,11 @@ class ProductService:
 
                 # Check if item is available
                 if is_active:
-                    items_available = self._get_item_availability(
+                    items_available = self._get_item(
                         latitude=latitude,
                         longitude=longitude,
                         item_id=selected_item.id,
-                    )
+                    )["items_available"]
                     if items_available > 0:
                         break
 
@@ -390,25 +450,82 @@ class ProductService:
                 status.update(get_monitoring_message(is_active))
                 if is_active:
                     sleep(delay / 1000)
+
+                # Handle timeframes
                 else:
                     current_time = datetime.now()
 
-                    # Create datetime object with current date
-                    start_dt = datetime.combine(
-                        date=current_time.date(),
-                        time=cast(time, start_time),
-                    )
+                    # Fetch the next sales window once the current one has
+                    # passed
+                    if (
+                        sleep_until_start
+                        and (
+                            current_time.astimezone()
+                            >= cast(datetime, start_time)
+                        )
+                    ):
+                        item_details = self._get_item(
+                            latitude=latitude,
+                            longitude=longitude,
+                            item_id=selected_item.id,
+                        )
+                        next_sales_window_purchase_start = item_details.get(
+                            "next_sales_window_purchase_start"
+                        )
 
-                    # Add one day if current time is past the start time
-                    # Example: Start time is 21:00:00 and end time is 22:00:00.
-                    #          Current time is 23:00:00. Then the monitor needs
-                    #          to sleep until 21:00:00 of the next day.
-                    if start_dt <= current_time:
-                        start_dt += timedelta(days=1)
+                        # Check if there is a next sales window
+                        if next_sales_window_purchase_start:
+                            start_utc = datetime.fromisoformat(
+                                next_sales_window_purchase_start
+                            )
+                            start = start_utc.astimezone()
+                            start_time = start
+                            end_time = (start + timedelta(minutes=1))
 
-                    # Calculate sleep time
-                    sleep_time = (start_dt - current_time).total_seconds()
-                    sleep(sleep_time)
+                            # Check to prevent negative sleep time
+                            if start <= datetime.now().astimezone():
+                                console.warning(
+                                    "The next sales window has not moved on "
+                                    "yet. Stopping...",
+                                    show_time=False,
+                                )
+                                return
+                        else:
+                            console.warning(
+                                "No next sales window found. Stopping...",
+                                show_time=False,
+                            )
+                            return
+
+                    # If using a configured timeframe, create datetime object
+                    # with the current date
+                    if isinstance(start_time, datetime):
+                        start_dt = start_time
+                        sleep_time = (
+                            start_dt - current_time.astimezone()
+                        ).total_seconds()
+
+                    else:
+                        start_dt = datetime.combine(
+                            date=current_time.date(),
+                            time=cast(time, start_time),
+                        )
+
+                        # Add one day if current time is past the start time
+                        # Example: Start time is 21:00 and end time is 22:00.
+                        #          Current time is 23:00. Then the monitor
+                        #          needs to sleep until 21:00 of the next day.
+                        if start_dt <= current_time:
+                            start_dt += timedelta(days=1)
+
+                        # Calculate sleep time
+                        sleep_time = (start_dt - current_time).total_seconds()
+
+                    # Sleep for the calculated time.
+                    # Limited to 1 hour in case the 'next sales window' changes
+                    # before the monitor awakes or in other rare cases like
+                    # time changes (e.g. daylight saving time).
+                    sleep(min(sleep_time, 3600))
 
         # Stop if checkout is disabled
         if not checkout_enabled:
@@ -449,11 +566,11 @@ class ProductService:
                 item_name=selected_item.name,
             )
             if not order_successful:
-                items_available = self._get_item_availability(
+                items_available = self._get_item(
                     latitude=latitude,
                     longitude=longitude,
                     item_id=selected_item.id,
-                )
+                )["items_available"]
                 if items_available < 1:
                     console.error(
                         "Item is no longer available. "

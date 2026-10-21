@@ -34,5 +34,6 @@ description: >-
 
 !!! tip
     For best results when using the automated checkout, a free virtual card
-    from [Bunq](https://bunq.com) is recommended. See
-    [Credit Cards](credit-cards.md) for more details.
+    from [Bunq](https://bunq.com) is recommended. Please note that Bunq is only
+    available in the EEA. If you are outside the EEA, most other cards will work
+    just as well. See [Credit Cards](credit-cards.md) for more details.
