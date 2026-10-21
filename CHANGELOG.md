@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.6...v0.1.7) (2026-10-21)
+
+
+### Performance
+
+* monitoring performance ([#79](https://github.com/peterschwps/TooGoodToGo-CLI/issues/79)) ([144309f](https://github.com/peterschwps/TooGoodToGo-CLI/commit/144309f6d0844080f061c4c6956924b56dc538af))
+
 ## [0.1.6](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.5...v0.1.6) (2026-10-03)
 
 
