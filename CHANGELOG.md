@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.7...v0.1.8) (2026-10-22)
+
+
+### Bug Fixes
+
+* catch errors when creating an order ([#86](https://github.com/peterschwps/TooGoodToGo-CLI/issues/86)) ([47a66a9](https://github.com/peterschwps/TooGoodToGo-CLI/commit/47a66a934a6186e8b6f7088a63ceec6d8afa921e))
+
 ## [0.1.7](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.6...v0.1.7) (2026-10-21)
 
 
