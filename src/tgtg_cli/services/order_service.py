@@ -88,7 +88,8 @@ class OrderService:
         # IMPORTANT: This request should be sent as quickly as possible since
         #            it reserves the item for 5 minutes!
         console.info(f"Creating order for item '{item_name}'...")
-        self._create_order(item_id=item_id, count=count)
+        if not self._create_order(item_id=item_id, count=count):
+            return False
         send_notification(
             topic=self._config.settings.monitor.ntfy_topic,
             title="Item available!",
@@ -475,7 +476,7 @@ class OrderService:
             )
             return False
 
-    def _create_order(self, item_id: str, count: int = 1) -> None:
+    def _create_order(self, item_id: str, count: int = 1) -> bool:
         """
         Creates an order for the given item and count. Stores the result in
         self._order_details.
@@ -483,11 +484,31 @@ class OrderService:
         Args:
             item_id (str): ID of the item to order.
             count (int, optional): Number of items to order. Defaults to 1.
+
+        Raises:
+            UnexpectedResponse: If the order was rejected for any other reason
+                                than the item being sold out.
+
+        Returns:
+            bool: True if the order was created, False if the item was sold
+                  out.
         """
         order = self._tgtg.create_order(
             item_id=item_id,
             count=count,
         )
+
+        # Item was sold out before it could be reserved
+        if order["state"] == "SOLD_OUT":
+            console.error("Item was sold out before it could be reserved.")
+            return False
+
+        # Any other rejection (e.g. 'USER_BLOCKED')
+        if order["state"] != "SUCCESS":
+            raise UnexpectedResponse(
+                f"Failed to create order (state: {order['state']})"
+            )
+
         order = cast(ReservedOrder, order["order"])
         self._order_details = OrderDetails(
             id=order["id"],
@@ -496,6 +517,7 @@ class OrderService:
             minor_units=order["order_line"]["total_price"]["minor_units"],
             decimals=order["order_line"]["total_price"]["decimals"],
         )
+        return True
 
     def _get_payment_details(self) -> None:
         """
