@@ -320,11 +320,12 @@ class ProductService:
             longitude=longitude,
             item_id=selected_item.id,
         )
+        items_available = item_details.get("items_available", 0)
         next_sales_window_purchase_start = item_details.get(
             "next_sales_window_purchase_start"
         )
         sleep_until_start = False
-        if next_sales_window_purchase_start:
+        if items_available == 0 and next_sales_window_purchase_start:
             start_utc = datetime.fromisoformat(
                 next_sales_window_purchase_start
             )
