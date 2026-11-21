@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.8...v0.1.9) (2026-11-21)
+
+
+### Bug Fixes
+
+* only ask to sleep until the next sales window on items that are out of stock ([#94](https://github.com/peterschwps/TooGoodToGo-CLI/issues/94)) ([147fbba](https://github.com/peterschwps/TooGoodToGo-CLI/commit/147fbbad84b23bcda7884edd6dc17bc5fc7310a9))
+
 ## [0.1.8](https://github.com/peterschwps/TooGoodToGo-CLI/compare/v0.1.7...v0.1.8) (2026-10-22)
 
 
